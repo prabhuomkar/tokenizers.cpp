@@ -1,0 +1,28 @@
+cmake_minimum_required(VERSION 3.27)
+
+project(tokenizers.cpp VERSION 1.0.0)
+
+set(CMAKE_CXX_STANDARD 17)
+
+set(SOURCES
+  src/tokenizer.cpp
+  src/utils.cpp
+  src/normalizer.cpp
+  src/pre_tokenizer.cpp
+  src/model.cpp
+  src/decoder.cpp
+  src/post_processor.cpp
+  third_party/simdjson/src/simdjson.cpp
+)
+
+add_library(tokenizers.cpp SHARED ${SOURCES})
+
+target_include_directories(tokenizers.cpp
+  PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/simdjson/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/simdjson/src
+)
+
+install(TARGETS tokenizers.cpp DESTINATION lib)
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/ DESTINATION include)

@@ -1,0 +1,12 @@
+---
+BasedOnStyle: Google
+IndentWidth: 2
+ColumnLimit: 80
+SpaceAfterCStyleCast: true
+UseTab: Never
+AllowShortIfStatementsOnASingleLine: false
+AlignTrailingComments: true
+SpacesBeforeTrailingComments: 3
+AlignConsecutiveMacros: Consecutive
+UseCRLF: true
+InsertNewlineAtEOF: true
