@@ -10,6 +10,7 @@
 #include "tokenizers.cpp/normalizer.h"
 #include "tokenizers.cpp/post_processor.h"
 #include "tokenizers.cpp/pre_tokenizer.h"
+#include "tokenizers.cpp/utils.h"
 
 Tokenizer::Tokenizer(std::string path) {
   // load json from file tokenizer.json
@@ -26,42 +27,28 @@ Tokenizer::Tokenizer(std::string path) {
   if (!tokenizer_json["normalizer"].is_null()) {
     simdjson::ondemand::object normalizer_params =
         tokenizer_json["normalizer"].value();
-    normalizer = with_normalizer(
-        normalizer_params["type"],
-        normalizer_params["clean_text"].is_null()
-            ? false
-            : static_cast<bool>(normalizer_params["clean_text"].get_bool()),
-        normalizer_params["handle_chinese_chars"].is_null()
-            ? false
-            : static_cast<bool>(
-                  normalizer_params["handle_chinese_chars"].get_bool()),
-        normalizer_params["strip_accents"].is_null()
-            ? false
-            : static_cast<bool>(normalizer_params["strip_accents"].get_bool()),
-        normalizer_params["lowercase"].is_null()
-            ? false
-            : static_cast<bool>(normalizer_params["lowercase"].get_bool()));
+    normalizer = with_normalizer(NormalizerConfig(normalizer_params));
   }
   if (!tokenizer_json["pre_tokenizer"].is_null()) {
     simdjson::ondemand::object pre_tokenizer_params =
         tokenizer_json["pre_tokenizer"].value();
     pre_tokenizer =
-        with_pre_tokenizer(pre_tokenizer_params["type"].get_string());
+        with_pre_tokenizer(pre_tokenizer_params["type"].get_string().value());
   }
   if (!tokenizer_json["model"].is_null()) {
     simdjson::ondemand::object model_params = tokenizer_json["model"].value();
-    model = with_model(model_params["type"].get_string());
+    model = with_model(ModelConfig(model_params));
   }
   if (!tokenizer_json["decoder"].is_null()) {
     simdjson::ondemand::object decoder_params =
         tokenizer_json["decoder"].value();
-    decoder = with_decoder(decoder_params["type"].get_string());
+    decoder = with_decoder(DecoderConfig(decoder_params));
   }
   if (!tokenizer_json["post_processor"].is_null()) {
     simdjson::ondemand::object post_processor_params =
         tokenizer_json["post_processor"].value();
     post_processor =
-        with_post_processor(post_processor_params["type"].get_string());
+        with_post_processor(post_processor_params["type"].get_string().value());
   }
 }
 
@@ -74,13 +61,12 @@ std::string Tokenizer::decode(std::vector<int> ids, bool skip_special_tokens) {
   return "";
 }
 
-Normalizer Tokenizer::with_normalizer(std::string_view type, bool clean_text,
-                                      bool handle_chinese_chars,
-                                      bool strip_accents, bool lowercase) {
-  switch (get_normalizer(type)) {
+Normalizer Tokenizer::with_normalizer(NormalizerConfig normalizer_config) {
+  switch (get_normalizer(normalizer_config.type)) {
     case BERT_NORMALIZER:
-      return BertNormalizer(clean_text, handle_chinese_chars, strip_accents,
-                            lowercase);
+      return BertNormalizer(
+          normalizer_config.clean_text, normalizer_config.handle_chinese_chars,
+          normalizer_config.strip_accents, normalizer_config.lowercase);
     default:
       break;
   }
@@ -99,10 +85,11 @@ PreTokenizer Tokenizer::with_pre_tokenizer(std::string_view type) {
   return PreTokenizer();
 }
 
-Model Tokenizer::with_model(std::string_view type) {
-  switch (get_model(type)) {
+Model Tokenizer::with_model(ModelConfig model_config) {
+  switch (get_model(model_config.type)) {
     case WORD_PIECE_MODEL:
-      return WordPiece();
+      return WordPiece(model_config.vocab, model_config.unk_token,
+                       model_config.max_input_chars_per_word);
     default:
       break;
   }
@@ -110,10 +97,10 @@ Model Tokenizer::with_model(std::string_view type) {
   return Model();
 }
 
-Decoder Tokenizer::with_decoder(std::string_view type) {
-  switch (get_decoder(type)) {
+Decoder Tokenizer::with_decoder(DecoderConfig decoder_config) {
+  switch (get_decoder(decoder_config.type)) {
     case WORD_PIECE_DECODER:
-      return WordPieceDecoder();
+      return WordPieceDecoder(decoder_config.prefix, decoder_config.cleanup);
     default:
       break;
   }

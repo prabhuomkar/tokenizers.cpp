@@ -19,9 +19,9 @@ add_library(tokenizers.cpp SHARED ${SOURCES})
 
 target_include_directories(tokenizers.cpp
   PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/simdjson/include
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/simdjson/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
 install(TARGETS tokenizers.cpp DESTINATION lib)

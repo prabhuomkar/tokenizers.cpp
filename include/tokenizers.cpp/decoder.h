@@ -3,6 +3,8 @@
 
 #include <string>
 
+#include "simdjson.h"
+
 enum DECODER {
   BPE_DECODER,
   BYTE_LEVEL_DECODER,
@@ -14,6 +16,14 @@ enum DECODER {
 
 DECODER get_decoder(std::string_view type);
 
+class DecoderConfig {
+ public:
+  std::string_view type;
+  std::string_view prefix;
+  bool cleanup;
+  explicit DecoderConfig(simdjson::ondemand::object decoder_params);
+};
+
 class Decoder {
  public:
   Decoder();
@@ -21,5 +31,6 @@ class Decoder {
 
 class WordPieceDecoder : public Decoder {
  public:
-  WordPieceDecoder();
+  explicit WordPieceDecoder(std::string_view prefix = "##",
+                            bool cleanup = true);
 };

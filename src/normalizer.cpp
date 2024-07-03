@@ -5,6 +5,8 @@
 #include <string>
 #include <unordered_map>
 
+#include "simdjson.h"
+
 NORMALIZER get_normalizer(std::string_view type) {
   static const std::unordered_map<std::string_view, NORMALIZER> types = {
       {"BertNormalizer", BERT_NORMALIZER},
@@ -25,9 +27,36 @@ NORMALIZER get_normalizer(std::string_view type) {
   return UNKNOWN_NORMALIZER;
 }
 
+NormalizerConfig::NormalizerConfig(
+    simdjson::ondemand::object normalizer_params) {
+  simdjson::ondemand::value val;
+  type = normalizer_params["type"].get_string();
+
+  val = normalizer_params["clean_text"].value();
+  clean_text = val.type() == simdjson::ondemand::json_type::null
+                   ? false
+                   : static_cast<bool>(val.get_bool());
+
+  val = normalizer_params["handle_chinese_chars"].value();
+  handle_chinese_chars = val.type() == simdjson::ondemand::json_type::null
+                             ? false
+                             : static_cast<bool>(val.get_bool());
+  val = normalizer_params["strip_accents"].value();
+  strip_accents = val.type() == simdjson::ondemand::json_type::null
+                      ? false
+                      : static_cast<bool>(val.get_bool());
+
+  val = normalizer_params["lowercase"].value();
+  lowercase = val.type() == simdjson::ondemand::json_type::null
+                  ? false
+                  : static_cast<bool>(val.get_bool());
+}
+
 Normalizer::Normalizer() {}
 
 BertNormalizer::BertNormalizer(bool clean_text, bool handle_chinese_chars,
                                bool strip_accents, bool lowercase) {
   std::cout << "Initialized Normalizer: BertNormalizer" << std::endl;
+  std::cout << "params:" << clean_text << " " << handle_chinese_chars << " "
+            << strip_accents << " " << lowercase << std::endl;
 }

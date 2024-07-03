@@ -2,6 +2,7 @@
 #pragma once
 
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "tokenizers.cpp/decoder.h"
@@ -36,11 +37,9 @@ class Tokenizer {
   PostProcessor post_processor;
   Decoder decoder;
 
-  Normalizer with_normalizer(std::string_view type, bool clean_text,
-                             bool handle_chinese_chars, bool strip_accents,
-                             bool lowercase);
+  Normalizer with_normalizer(NormalizerConfig normalizer_config);
   PreTokenizer with_pre_tokenizer(std::string_view type);
-  Model with_model(std::string_view type);
-  Decoder with_decoder(std::string_view type);
+  Model with_model(ModelConfig model_config);
+  Decoder with_decoder(DecoderConfig decoder_config);
   PostProcessor with_post_processor(std::string_view type);
 };

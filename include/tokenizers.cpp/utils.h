@@ -2,6 +2,9 @@
 #pragma once
 
 #include <string>
+#include <unordered_map>
+
+#include "simdjson.h"
 
 class Truncation {
  public:
@@ -40,3 +43,6 @@ class AddedToken {
   bool normalized;
   bool special;
 };
+
+std::unordered_map<std::string_view, int> get_map_from_json(
+    simdjson::ondemand::object json_object);
