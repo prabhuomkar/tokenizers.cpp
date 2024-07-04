@@ -29,7 +29,7 @@ ModelConfig::ModelConfig(simdjson::ondemand::object model_params) {
   val = model_params["vocab"].value();
   vocab = val.type() == simdjson::ondemand::json_type::null
               ? std::unordered_map<std::string_view, int>()
-              : get_map_from_json(val.get_object());
+              : get_map_ints_from_json(val.get_object());
 
   val = model_params["unk_token"].value();
   unk_token = val.type() == simdjson::ondemand::json_type::null

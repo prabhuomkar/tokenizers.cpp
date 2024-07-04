@@ -10,6 +10,7 @@
 #include "tokenizers.cpp/normalizer.h"
 #include "tokenizers.cpp/post_processor.h"
 #include "tokenizers.cpp/pre_tokenizer.h"
+#include "tokenizers.cpp/utils.h"
 
 class Encoding {
  public:
@@ -31,12 +32,15 @@ class Tokenizer {
 
  private:
   std::string version;
+  AddedVocabulary added_vocabulary;
   Normalizer normalizer;
   PreTokenizer pre_tokenizer;
   Model model;
   PostProcessor post_processor;
   Decoder decoder;
 
+  AddedVocabulary with_added_vocabulary(
+      AddedVocabularyConfig added_vocabulary_config);
   Normalizer with_normalizer(NormalizerConfig normalizer_config);
   PreTokenizer with_pre_tokenizer(std::string_view type);
   Model with_model(ModelConfig model_config);

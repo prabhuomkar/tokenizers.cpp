@@ -42,4 +42,10 @@ class BertNormalizer : public Normalizer {
   explicit BertNormalizer(bool clean_text = true,
                           bool handle_chinese_chars = true,
                           bool strip_accents = false, bool lowercase = true);
+
+ private:
+  bool clean_text;
+  bool handle_chinese_chars;
+  bool strip_accents;
+  bool lowercase;
 };

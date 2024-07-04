@@ -21,6 +21,12 @@ Tokenizer::Tokenizer(std::string path) {
       parser.iterate(tokenizer_json_str);
 
   // set truncation, padding, added_tokens
+  if (!tokenizer_json["added_tokens"].is_null()) {
+    simdjson::ondemand::array added_tokens_params =
+        tokenizer_json["added_tokens"].get_array();
+    added_vocabulary =
+        with_added_vocabulary(AddedVocabularyConfig(added_tokens_params));
+  }
 
   // initialize the components of the tokenizer e.g. normalizer, pre_tokenizer
   // model, post_processor, decoder
@@ -59,6 +65,11 @@ Encoding Tokenizer::encode(std::string sequence, bool is_pretokenized,
 
 std::string Tokenizer::decode(std::vector<int> ids, bool skip_special_tokens) {
   return "";
+}
+
+AddedVocabulary Tokenizer::with_added_vocabulary(
+    AddedVocabularyConfig added_vocabulary_config) {
+  return AddedVocabulary(added_vocabulary_config.added_tokens);
 }
 
 Normalizer Tokenizer::with_normalizer(NormalizerConfig normalizer_config) {

@@ -55,7 +55,11 @@ NormalizerConfig::NormalizerConfig(
 Normalizer::Normalizer() {}
 
 BertNormalizer::BertNormalizer(bool clean_text, bool handle_chinese_chars,
-                               bool strip_accents, bool lowercase) {
+                               bool strip_accents, bool lowercase)
+    : clean_text(clean_text),
+      handle_chinese_chars(handle_chinese_chars),
+      strip_accents(strip_accents),
+      lowercase(lowercase) {
   std::cout << "Initialized Normalizer: BertNormalizer" << std::endl;
   std::cout << "params:" << clean_text << " " << handle_chinese_chars << " "
             << strip_accents << " " << lowercase << std::endl;

@@ -3,6 +3,7 @@
 
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "simdjson.h"
 
@@ -32,17 +33,33 @@ class Padding {
 
 class AddedToken {
  public:
-  AddedToken();
-
- private:
   int id;
-  std::string content;
+  std::string_view content;
   bool single_word;
   bool lstrip;
   bool rstrip;
   bool normalized;
   bool special;
+  AddedToken();
+  explicit AddedToken(int id, std::string_view content = "",
+                      bool single_word = false, bool lstrip = false,
+                      bool rstrip = false, bool normalized = true,
+                      bool special = false);
 };
 
-std::unordered_map<std::string_view, int> get_map_from_json(
+class AddedVocabulary {
+ public:
+  explicit AddedVocabulary(std::vector<AddedToken> added_tokens = {});
+
+ private:
+  std::vector<AddedToken> added_tokens;
+};
+
+class AddedVocabularyConfig {
+ public:
+  std::vector<AddedToken> added_tokens;
+  explicit AddedVocabularyConfig(simdjson::ondemand::array added_tokens_params);
+};
+
+std::unordered_map<std::string_view, int> get_map_ints_from_json(
     simdjson::ondemand::object json_object);
