@@ -10,7 +10,7 @@ Padding::Padding() {}
 
 AddedToken::AddedToken() {}
 
-AddedToken::AddedToken(int id, std::string_view content, bool single_word,
+AddedToken::AddedToken(int id, std::string content, bool single_word,
                        bool lstrip, bool rstrip, bool normalized, bool special)
     : id(id),
       content(content),
@@ -19,6 +19,8 @@ AddedToken::AddedToken(int id, std::string_view content, bool single_word,
       rstrip(rstrip),
       normalized(normalized),
       special(special) {}
+
+AddedVocabulary::AddedVocabulary() {}
 
 AddedVocabulary::AddedVocabulary(std::vector<AddedToken> added_tokens)
     : added_tokens(added_tokens) {
@@ -44,8 +46,8 @@ AddedVocabularyConfig::AddedVocabularyConfig(
       if (key.value() == "id") {
         added_token.id = static_cast<int>(element.value().get_int64());
       } else if (key.value() == "content") {
-        added_token.content =
-            static_cast<std::string_view>(element.value().get_string());
+        added_token.content = std::string(
+            static_cast<std::string_view>(element.value().get_string()));
       } else if (key.value() == "single_word") {
         added_token.single_word = static_cast<bool>(element.value().get_bool());
       } else if (key.value() == "lstrip") {
@@ -62,12 +64,13 @@ AddedVocabularyConfig::AddedVocabularyConfig(
   }
 }
 
-std::unordered_map<std::string_view, int> get_map_ints_from_json(
+std::unordered_map<std::string, int> get_map_ints_from_json(
     simdjson::ondemand::object json_object) {
-  std::unordered_map<std::string_view, int> result;
+  std::unordered_map<std::string, int> result;
   for (auto element : json_object) {
     result.insert(
-        {element.escaped_key(), static_cast<int>(element.value().get_int64())});
+        {std::string(static_cast<std::string_view>(element.escaped_key())),
+         static_cast<int>(element.value().get_int64())});
   }
   return result;
 }

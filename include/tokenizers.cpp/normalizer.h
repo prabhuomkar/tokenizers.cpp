@@ -20,11 +20,11 @@ enum NORMALIZER {
   UNKNOWN_NORMALIZER
 };
 
-NORMALIZER get_normalizer(std::string_view type);
+NORMALIZER get_normalizer(std::string type);
 
 class NormalizerConfig {
  public:
-  std::string_view type;
+  std::string type;
   bool clean_text;
   bool handle_chinese_chars;
   bool strip_accents;

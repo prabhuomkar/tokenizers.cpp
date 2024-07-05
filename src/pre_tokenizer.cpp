@@ -5,8 +5,8 @@
 #include <string>
 #include <unordered_map>
 
-PRE_TOKENIZER get_pre_tokenizer(std::string_view type) {
-  static const std::unordered_map<std::string_view, PRE_TOKENIZER> types = {
+PRE_TOKENIZER get_pre_tokenizer(std::string type) {
+  static const std::unordered_map<std::string, PRE_TOKENIZER> types = {
       {"BertPreTokenizer", BERT_PRE_TOKENIZER},
       {"ByteLevel", BYTE_LEVEL_PRE_TOKENIZER},
       {"CharDelimiterSplit", CHAR_DELIMITER_SPLIT_PRE_TOKENIZER},

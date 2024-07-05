@@ -7,8 +7,8 @@
 
 #include "simdjson.h"
 
-NORMALIZER get_normalizer(std::string_view type) {
-  static const std::unordered_map<std::string_view, NORMALIZER> types = {
+NORMALIZER get_normalizer(std::string type) {
+  static const std::unordered_map<std::string, NORMALIZER> types = {
       {"BertNormalizer", BERT_NORMALIZER},
       {"Lowercase", LOWERCASE_NORMALIZER},
       {"NFC", NFC_NORMALIZER},
@@ -30,7 +30,8 @@ NORMALIZER get_normalizer(std::string_view type) {
 NormalizerConfig::NormalizerConfig(
     simdjson::ondemand::object normalizer_params) {
   simdjson::ondemand::value val;
-  type = normalizer_params["type"].get_string();
+  type = std::string(
+      static_cast<std::string_view>(normalizer_params["type"].get_string()));
 
   val = normalizer_params["clean_text"].value();
   clean_text = val.type() == simdjson::ondemand::json_type::null

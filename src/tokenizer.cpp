@@ -29,7 +29,7 @@ Tokenizer::Tokenizer(std::string path) {
   }
 
   // initialize the components of the tokenizer e.g. normalizer, pre_tokenizer
-  // model, post_processor, decoder
+  // model, decoder, post_processor
   if (!tokenizer_json["normalizer"].is_null()) {
     simdjson::ondemand::object normalizer_params =
         tokenizer_json["normalizer"].value();
@@ -39,7 +39,8 @@ Tokenizer::Tokenizer(std::string path) {
     simdjson::ondemand::object pre_tokenizer_params =
         tokenizer_json["pre_tokenizer"].value();
     pre_tokenizer =
-        with_pre_tokenizer(pre_tokenizer_params["type"].get_string().value());
+        with_pre_tokenizer(std::string(static_cast<std::string_view>(
+            pre_tokenizer_params["type"].get_string())));
   }
   if (!tokenizer_json["model"].is_null()) {
     simdjson::ondemand::object model_params = tokenizer_json["model"].value();
@@ -54,7 +55,8 @@ Tokenizer::Tokenizer(std::string path) {
     simdjson::ondemand::object post_processor_params =
         tokenizer_json["post_processor"].value();
     post_processor =
-        with_post_processor(post_processor_params["type"].get_string().value());
+        with_post_processor(std::string(static_cast<std::string_view>(
+            post_processor_params["type"].get_string())));
   }
 }
 
@@ -85,7 +87,7 @@ Normalizer Tokenizer::with_normalizer(NormalizerConfig normalizer_config) {
   return Normalizer();
 }
 
-PreTokenizer Tokenizer::with_pre_tokenizer(std::string_view type) {
+PreTokenizer Tokenizer::with_pre_tokenizer(std::string type) {
   switch (get_pre_tokenizer(type)) {
     case BERT_PRE_TOKENIZER:
       return BertPreTokenizer();
@@ -119,7 +121,7 @@ Decoder Tokenizer::with_decoder(DecoderConfig decoder_config) {
   return Decoder();
 }
 
-PostProcessor Tokenizer::with_post_processor(std::string_view type) {
+PostProcessor Tokenizer::with_post_processor(std::string type) {
   switch (get_post_processor(type)) {
     case TEMPLATE_PROCESSING:
       return TemplateProcessing();

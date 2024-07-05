@@ -7,8 +7,8 @@
 
 #include "simdjson.h"
 
-DECODER get_decoder(std::string_view type) {
-  static const std::unordered_map<std::string_view, DECODER> types = {
+DECODER get_decoder(std::string type) {
+  static const std::unordered_map<std::string, DECODER> types = {
       {"BPEDecoder", BPE_DECODER},
       {"ByteLevel", BYTE_LEVEL_DECODER},
       {"CTC", CTC_DECODER},
@@ -24,7 +24,8 @@ DECODER get_decoder(std::string_view type) {
 
 DecoderConfig::DecoderConfig(simdjson::ondemand::object decoder_params) {
   simdjson::ondemand::value val;
-  type = decoder_params["type"].get_string();
+  type = std::string(
+      static_cast<std::string_view>(decoder_params["type"].get_string()));
 
   val = decoder_params["prefix"].value();
   prefix = val.type() == simdjson::ondemand::json_type::null
@@ -39,7 +40,7 @@ DecoderConfig::DecoderConfig(simdjson::ondemand::object decoder_params) {
 
 Decoder::Decoder() {}
 
-WordPieceDecoder::WordPieceDecoder(std::string_view prefix, bool cleanup) {
+WordPieceDecoder::WordPieceDecoder(std::string prefix, bool cleanup) {
   std::cout << "Initialized Decoder: WordPiece" << std::endl;
   std::cout << "params: " << prefix << " " << cleanup << std::endl;
 }

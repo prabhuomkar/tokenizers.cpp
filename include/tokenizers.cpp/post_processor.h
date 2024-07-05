@@ -11,7 +11,7 @@ enum POST_PROCESSOR {
   UNKNOWN_POST_PROCESSOR
 };
 
-POST_PROCESSOR get_post_processor(std::string_view type);
+POST_PROCESSOR get_post_processor(std::string type);
 
 class PostProcessor {
  public:

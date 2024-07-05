@@ -14,13 +14,13 @@ enum MODEL {
   UNKNOWN_MODEL
 };
 
-MODEL get_model(std::string_view type);
+MODEL get_model(std::string type);
 
 class ModelConfig {
  public:
-  std::string_view type;
-  std::unordered_map<std::string_view, int> vocab;
-  std::string_view unk_token;
+  std::string type;
+  std::unordered_map<std::string, int> vocab;
+  std::string unk_token;
   int max_input_chars_per_word;
   explicit ModelConfig(simdjson::ondemand::object model_params);
 };
@@ -32,6 +32,6 @@ class Model {
 
 class WordPiece : public Model {
  public:
-  WordPiece(std::unordered_map<std::string_view, int> vocab,
-            std::string_view unk_token, int max_input_chars_per_word);
+  WordPiece(std::unordered_map<std::string, int> vocab, std::string unk_token,
+            int max_input_chars_per_word);
 };

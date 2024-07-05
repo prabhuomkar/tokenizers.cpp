@@ -17,7 +17,7 @@ enum PRE_TOKENIZER {
   UNKNOWN_PRE_TOKENIZER
 };
 
-PRE_TOKENIZER get_pre_tokenizer(std::string_view type);
+PRE_TOKENIZER get_pre_tokenizer(std::string type);
 
 class PreTokenizer {
  public:

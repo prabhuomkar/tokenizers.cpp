@@ -14,12 +14,12 @@ enum DECODER {
   UNKNOWN_DECODER
 };
 
-DECODER get_decoder(std::string_view type);
+DECODER get_decoder(std::string type);
 
 class DecoderConfig {
  public:
-  std::string_view type;
-  std::string_view prefix;
+  std::string type;
+  std::string prefix;
   bool cleanup;
   explicit DecoderConfig(simdjson::ondemand::object decoder_params);
 };
@@ -31,6 +31,5 @@ class Decoder {
 
 class WordPieceDecoder : public Decoder {
  public:
-  explicit WordPieceDecoder(std::string_view prefix = "##",
-                            bool cleanup = true);
+  explicit WordPieceDecoder(std::string prefix = "##", bool cleanup = true);
 };

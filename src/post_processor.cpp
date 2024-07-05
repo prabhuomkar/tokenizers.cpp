@@ -5,8 +5,8 @@
 #include <string>
 #include <unordered_map>
 
-POST_PROCESSOR get_post_processor(std::string_view type) {
-  static const std::unordered_map<std::string_view, POST_PROCESSOR> types = {
+POST_PROCESSOR get_post_processor(std::string type) {
+  static const std::unordered_map<std::string, POST_PROCESSOR> types = {
       {"BertProcessing", BERT_PROCESSING},
       {"ByteLevel", BYTE_LEVEL_PROCESSING},
       {"RobertaProcessing", ROBERTA_PROCESSING},

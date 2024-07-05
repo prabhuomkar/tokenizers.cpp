@@ -42,8 +42,8 @@ class Tokenizer {
   AddedVocabulary with_added_vocabulary(
       AddedVocabularyConfig added_vocabulary_config);
   Normalizer with_normalizer(NormalizerConfig normalizer_config);
-  PreTokenizer with_pre_tokenizer(std::string_view type);
+  PreTokenizer with_pre_tokenizer(std::string type);
   Model with_model(ModelConfig model_config);
   Decoder with_decoder(DecoderConfig decoder_config);
-  PostProcessor with_post_processor(std::string_view type);
+  PostProcessor with_post_processor(std::string type);
 };
