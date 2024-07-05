@@ -1,11 +1,15 @@
 // Copyright 2024 Omkar Prabhu
 #pragma once
 
+#include <optional>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "simdjson.h"
+#include "tokenizers.cpp/model.h"
+#include "tokenizers.cpp/normalizer.h"
 
 class Truncation {
  public:
@@ -49,11 +53,20 @@ class AddedToken {
 
 class AddedVocabulary {
  public:
+  std::vector<AddedToken> added_tokens;
   AddedVocabulary();
   explicit AddedVocabulary(std::vector<AddedToken> added_tokens);
+  int add_tokens(std::vector<AddedToken> tokens, Model model,
+                 std::optional<Normalizer> normalizer);
+  int add_special_tokens(std::vector<AddedToken> tokens, Model model,
+                         std::optional<Normalizer> normalizer);
 
  private:
-  std::vector<AddedToken> added_tokens;
+  std::unordered_map<std::string, int> added_tokens_map;
+  std::unordered_map<int, AddedToken> added_tokens_map_r;
+  std::vector<AddedToken> special_tokens;
+  std::unordered_set<std::string> special_tokens_set;
+  void refresh_added_tokens(Model model, std::optional<Normalizer> normalizer);
 };
 
 class AddedVocabularyConfig {

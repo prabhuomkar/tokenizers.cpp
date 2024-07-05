@@ -1,6 +1,7 @@
 // Copyright 2024 Omkar Prabhu
 #pragma once
 
+#include <optional>
 #include <string>
 #include <unordered_map>
 
@@ -28,6 +29,15 @@ class ModelConfig {
 class Model {
  public:
   Model();
+  Model(std::unordered_map<std::string, int> vocab, std::string unk_token,
+        int max_input_chars_per_word);
+  int get_vocab_size();
+  std::optional<int> token_to_id(std::string token);
+
+ private:
+  std::unordered_map<std::string, int> vocab;
+  std::string unk_token;
+  int max_input_chars_per_word;
 };
 
 class WordPiece : public Model {

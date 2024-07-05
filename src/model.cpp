@@ -2,6 +2,7 @@
 #include "tokenizers.cpp/model.h"
 
 #include <iostream>
+#include <optional>
 #include <string>
 #include <unordered_map>
 
@@ -46,9 +47,26 @@ ModelConfig::ModelConfig(simdjson::ondemand::object model_params) {
 
 Model::Model() {}
 
+Model::Model(std::unordered_map<std::string, int> vocab, std::string unk_token,
+             int max_input_chars_per_word)
+    : vocab(vocab),
+      unk_token(unk_token),
+      max_input_chars_per_word(max_input_chars_per_word) {}
+
+int Model::get_vocab_size() { return vocab.size(); }
+
+std::optional<int> Model::token_to_id(std::string token) {
+  auto it = vocab.find(token);
+  if (it != vocab.end()) {
+    return it->second;
+  }
+  return std::nullopt;
+}
+
 WordPiece::WordPiece(std::unordered_map<std::string, int> vocab,
-                     std::string unk_token, int max_input_chars_per_word) {
+                     std::string unk_token, int max_input_chars_per_word)
+    : Model(vocab, unk_token, max_input_chars_per_word) {
   std::cout << "Initialized Model: WordPiece" << std::endl;
-  std::cout << "params: " << unk_token << " " << max_input_chars_per_word
-            << std::endl;
+  std::cout << "params: " << vocab.size() << " " << unk_token << " "
+            << max_input_chars_per_word << std::endl;
 }

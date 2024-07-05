@@ -1,8 +1,13 @@
 // Copyright 2024 Omkar Prabhu
 #include "tokenizers.cpp/utils.h"
 
+#include <algorithm>
+#include <optional>
 #include <string>
 #include <vector>
+
+#include "tokenizers.cpp/model.h"
+#include "tokenizers.cpp/normalizer.h"
 
 Truncation::Truncation() {}
 
@@ -33,6 +38,66 @@ AddedVocabulary::AddedVocabulary(std::vector<AddedToken> added_tokens)
               << added_token.special << ") ";
   }
   std::cout << std::endl;
+}
+
+int AddedVocabulary::add_tokens(std::vector<AddedToken> tokens, Model model,
+                                std::optional<Normalizer> normalizer) {
+  for (auto token : tokens) {
+    if (token.special && !token.content.empty() &&
+        special_tokens_set.count(token.content) != 1) {
+      special_tokens.push_back(token);
+      special_tokens_set.insert(token.content);
+    }
+  }
+
+  int ignored = 0;
+  for (auto token : tokens) {
+    if (token.content.empty()) {
+      ignored++;
+      continue;
+    }
+
+    int new_id;
+    auto it = added_tokens_map.find(token.content);
+    if (it != added_tokens_map.end()) {
+      new_id = it->second;
+    } else if (model.token_to_id(token.content).has_value()) {
+      new_id = model.token_to_id(token.content).value();
+      std::cout << new_id << std::endl;
+    } else {
+      auto max_val_token =
+          std::max_element(added_tokens_map.begin(), added_tokens_map.end(),
+                           [](const std::pair<std::string, int>& a,
+                              const std::pair<std::string, int>& b) {
+                             return a.second < b.second;
+                           });
+      if (model.get_vocab_size() == 0 ||
+          max_val_token->second >= model.get_vocab_size()) {
+        new_id = max_val_token->second + 1;
+      } else {
+        new_id = model.get_vocab_size();
+      }
+    }
+    added_tokens_map[token.content] = new_id;
+    added_tokens_map_r[new_id] = token;
+
+    if (!special_tokens_set.count(token.content)) {
+      added_tokens.push_back(token);
+    }
+  }
+
+  refresh_added_tokens(model, normalizer);
+
+  return tokens.size() - ignored;
+}
+
+void AddedVocabulary::refresh_added_tokens(
+    Model model, std::optional<Normalizer> normalizer) {}
+
+int AddedVocabulary::add_special_tokens(std::vector<AddedToken> tokens,
+                                        Model model,
+                                        std::optional<Normalizer> normalizer) {
+  return add_tokens(tokens, model, normalizer);
 }
 
 AddedVocabularyConfig::AddedVocabularyConfig(

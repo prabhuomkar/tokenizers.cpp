@@ -1,6 +1,7 @@
 // Copyright 2024 Omkar Prabhu
 #include "tokenizers.cpp/tokenizer.h"
 
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -58,10 +59,15 @@ Tokenizer::Tokenizer(std::string path) {
         with_post_processor(std::string(static_cast<std::string_view>(
             post_processor_params["type"].get_string())));
   }
+
+  add_tokens(added_vocabulary.added_tokens);
 }
 
 Encoding Tokenizer::encode(std::string sequence, bool is_pretokenized,
                            bool add_special_tokens) {
+  // normalize
+  // pretokenize
+  // tokenize using model
   return Encoding();
 }
 
@@ -69,12 +75,21 @@ std::string Tokenizer::decode(std::vector<int> ids, bool skip_special_tokens) {
   return "";
 }
 
+int Tokenizer::add_tokens(std::vector<AddedToken> tokens) {
+  return added_vocabulary.add_tokens(tokens, model, normalizer);
+}
+
+int Tokenizer::add_special_tokens(std::vector<AddedToken> tokens) {
+  return added_vocabulary.add_special_tokens(tokens, model, normalizer);
+}
+
 AddedVocabulary Tokenizer::with_added_vocabulary(
     AddedVocabularyConfig added_vocabulary_config) {
   return AddedVocabulary(added_vocabulary_config.added_tokens);
 }
 
-Normalizer Tokenizer::with_normalizer(NormalizerConfig normalizer_config) {
+std::optional<Normalizer> Tokenizer::with_normalizer(
+    NormalizerConfig normalizer_config) {
   switch (get_normalizer(normalizer_config.type)) {
     case BERT_NORMALIZER:
       return BertNormalizer(
@@ -84,7 +99,7 @@ Normalizer Tokenizer::with_normalizer(NormalizerConfig normalizer_config) {
       break;
   }
 
-  return Normalizer();
+  return std::nullopt;
 }
 
 PreTokenizer Tokenizer::with_pre_tokenizer(std::string type) {
@@ -107,7 +122,8 @@ Model Tokenizer::with_model(ModelConfig model_config) {
       break;
   }
 
-  return Model();
+  return Model(model_config.vocab, model_config.unk_token,
+               model_config.max_input_chars_per_word);
 }
 
 Decoder Tokenizer::with_decoder(DecoderConfig decoder_config) {
