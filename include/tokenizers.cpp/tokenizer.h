@@ -4,8 +4,10 @@
 #include <optional>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
+#include "tokenizers.cpp/added_vocabulary.h"
 #include "tokenizers.cpp/decoder.h"
 #include "tokenizers.cpp/model.h"
 #include "tokenizers.cpp/normalizer.h"
@@ -21,6 +23,14 @@ class Encoding {
   std::vector<int> words;
   std::vector<int> special_tokens_mask;
   std::vector<int> attention_mask;
+};
+
+class Token {
+ public:
+  int id;
+  std::string value;
+  std::pair<int, int> offsets;
+  Token(int id, std::string value, std::pair<int, int> offsets);
 };
 
 class Tokenizer {

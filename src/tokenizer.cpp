@@ -6,12 +6,16 @@
 #include <vector>
 
 #include "simdjson.h"
+#include "tokenizers.cpp/added_vocabulary.h"
 #include "tokenizers.cpp/decoder.h"
 #include "tokenizers.cpp/model.h"
 #include "tokenizers.cpp/normalizer.h"
 #include "tokenizers.cpp/post_processor.h"
 #include "tokenizers.cpp/pre_tokenizer.h"
 #include "tokenizers.cpp/utils.h"
+
+Token::Token(int id, std::string value, std::pair<int, int> offsets)
+    : id(id), value(value), offsets(offsets) {}
 
 Tokenizer::Tokenizer(std::string path) {
   // load json from file tokenizer.json

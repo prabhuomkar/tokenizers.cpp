@@ -5,6 +5,7 @@ project(tokenizers.cpp VERSION 1.0.0)
 set(CMAKE_CXX_STANDARD 17)
 
 set(SOURCES
+  src/added_vocabulary.cpp
   src/tokenizer.cpp
   src/utils.cpp
   src/normalizer.cpp
