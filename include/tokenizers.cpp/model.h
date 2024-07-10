@@ -48,7 +48,7 @@ class WordPiece : public Model {
   int max_input_chars_per_word;
   std::string continuing_subword_prefix;
   std::vector<Token> tokenize(std::string sequence);
-  WordPiece(std::unordered_map<std::string, int> vocab, std::string unk_token,
-            int max_input_chars_per_word,
-            std::string continuing_subword_prefix);
+  WordPiece(std::unordered_map<std::string, int> vocab,
+            std::string unk_token = "[UNK]", int max_input_chars_per_word = 100,
+            std::string continuing_subword_prefix = "##");
 };
