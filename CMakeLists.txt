@@ -8,6 +8,7 @@ set(SOURCES
   src/added_vocabulary.cpp
   src/tokenizer.cpp
   src/utils.cpp
+  src/common.cpp
   src/normalizer.cpp
   src/pre_tokenizer.cpp
   src/model.cpp

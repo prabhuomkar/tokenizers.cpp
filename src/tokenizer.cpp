@@ -7,15 +7,13 @@
 
 #include "simdjson.h"
 #include "tokenizers.cpp/added_vocabulary.h"
+#include "tokenizers.cpp/common.h"
 #include "tokenizers.cpp/decoder.h"
 #include "tokenizers.cpp/model.h"
 #include "tokenizers.cpp/normalizer.h"
 #include "tokenizers.cpp/post_processor.h"
 #include "tokenizers.cpp/pre_tokenizer.h"
 #include "tokenizers.cpp/utils.h"
-
-Token::Token(int id, std::string value, std::pair<int, int> offsets)
-    : id(id), value(value), offsets(offsets) {}
 
 Tokenizer::Tokenizer(std::string path) {
   // load json from file tokenizer.json
@@ -121,13 +119,13 @@ Model Tokenizer::with_model(ModelConfig model_config) {
   switch (get_model(model_config.type)) {
     case WORD_PIECE_MODEL:
       return WordPiece(model_config.vocab, model_config.unk_token,
-                       model_config.max_input_chars_per_word);
+                       model_config.max_input_chars_per_word,
+                       model_config.continuing_subword_prefix);
     default:
       break;
   }
 
-  return Model(model_config.vocab, model_config.unk_token,
-               model_config.max_input_chars_per_word);
+  return Model(model_config.vocab);
 }
 
 Decoder Tokenizer::with_decoder(DecoderConfig decoder_config) {

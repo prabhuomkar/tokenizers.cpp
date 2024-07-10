@@ -8,30 +8,13 @@
 #include <vector>
 
 #include "tokenizers.cpp/added_vocabulary.h"
+#include "tokenizers.cpp/common.h"
 #include "tokenizers.cpp/decoder.h"
 #include "tokenizers.cpp/model.h"
 #include "tokenizers.cpp/normalizer.h"
 #include "tokenizers.cpp/post_processor.h"
 #include "tokenizers.cpp/pre_tokenizer.h"
 #include "tokenizers.cpp/utils.h"
-
-class Encoding {
- public:
-  std::vector<int> ids;
-  std::vector<int> type_ids;
-  std::vector<std::string> tokens;
-  std::vector<int> words;
-  std::vector<int> special_tokens_mask;
-  std::vector<int> attention_mask;
-};
-
-class Token {
- public:
-  int id;
-  std::string value;
-  std::pair<int, int> offsets;
-  Token(int id, std::string value, std::pair<int, int> offsets);
-};
 
 class Tokenizer {
  public:
