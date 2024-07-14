@@ -35,6 +35,7 @@ class NormalizerConfig {
 class Normalizer {
  public:
   Normalizer();
+  std::wstring normalize(std::wstring normalized);
 };
 
 class BertNormalizer : public Normalizer {
@@ -42,10 +43,21 @@ class BertNormalizer : public Normalizer {
   explicit BertNormalizer(bool clean_text = true,
                           bool handle_chinese_chars = true,
                           bool strip_accents = false, bool lowercase = true);
+  std::wstring normalize(std::wstring normalized);
 
  private:
   bool clean_text;
   bool handle_chinese_chars;
   bool strip_accents;
   bool lowercase;
+  std::wstring do_clean_text(std::wstring normalized);
+  std::wstring do_handle_chinese_chars(std::wstring normalized);
+  std::wstring do_strip_accents(std::wstring normalized);
+  std::wstring do_lowercase(std::wstring normalized);
+};
+
+class NFD : public Normalizer {
+ public:
+  NFD();
+  std::wstring normalize(std::wstring normalized);
 };

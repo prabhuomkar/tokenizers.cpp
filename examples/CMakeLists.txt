@@ -9,7 +9,6 @@ find_library(TOKENIZERS_CPP_LIB
   HINTS ../build
 )
 
-# Verify that the library was found
 if(NOT TOKENIZERS_CPP_LIB)
   message(FATAL_ERROR "tokenizers.cpp library not found")
 else()
@@ -18,7 +17,8 @@ endif()
 
 include_directories(../include)
 include_directories(../third_party/simdjson/include)
+find_package(ICU REQUIRED COMPONENTS uc i18n)
 
 add_executable(bert-base-uncased bert-base-uncased.cpp)
 
-target_link_libraries(bert-base-uncased ${TOKENIZERS_CPP_LIB})
+target_link_libraries(bert-base-uncased ${TOKENIZERS_CPP_LIB} ICU::uc ICU::i18n)
