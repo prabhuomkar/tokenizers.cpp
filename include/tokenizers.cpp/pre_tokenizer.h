@@ -17,14 +17,19 @@ enum PRE_TOKENIZER {
   UNKNOWN_PRE_TOKENIZER
 };
 
-PRE_TOKENIZER get_pre_tokenizer(std::string type);
+enum SPLIT_DELIMITER_BEHAVIOR { REMOVED, ISOLATED };
+
+PRE_TOKENIZER
+get_pre_tokenizer(std::string type);
 
 class PreTokenizer {
  public:
   PreTokenizer();
+  std::string pre_tokenize(std::wstring normalized);
 };
 
 class BertPreTokenizer : public PreTokenizer {
  public:
   BertPreTokenizer();
+  std::string pre_tokenize(std::wstring normalized);
 };

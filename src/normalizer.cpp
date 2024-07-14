@@ -83,11 +83,7 @@ BertNormalizer::BertNormalizer(bool clean_text, bool handle_chinese_chars,
     : clean_text(clean_text),
       handle_chinese_chars(handle_chinese_chars),
       strip_accents(strip_accents),
-      lowercase(lowercase) {
-  std::cout << "Initialized Normalizer: BertNormalizer" << std::endl;
-  std::cout << "params:" << clean_text << " " << handle_chinese_chars << " "
-            << strip_accents << " " << lowercase << std::endl;
-}
+      lowercase(lowercase) {}
 
 std::wstring BertNormalizer::normalize(std::wstring normalized) {
   if (clean_text) {
