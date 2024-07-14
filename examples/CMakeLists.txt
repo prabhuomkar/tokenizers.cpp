@@ -12,7 +12,7 @@ find_library(TOKENIZERS_CPP_LIB
 if(NOT TOKENIZERS_CPP_LIB)
   message(FATAL_ERROR "tokenizers.cpp library not found")
 else()
-  message(STATUS "tokenizers.cpp library found at ${TOKENIZERS_CPP_LIB}")
+  message(STATUS "Found the library tokenizers.cpp at ${TOKENIZERS_CPP_LIB}")
 endif()
 
 include_directories(../include)
