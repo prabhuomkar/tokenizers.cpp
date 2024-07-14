@@ -76,7 +76,8 @@ WordPiece::WordPiece(std::unordered_map<std::string, int> vocab,
       continuing_subword_prefix(continuing_subword_prefix) {
   std::cout << "Initialized Model: WordPiece" << std::endl;
   std::cout << "params: " << vocab.size() << " " << unk_token << " "
-            << max_input_chars_per_word << std::endl;
+            << max_input_chars_per_word << " " << continuing_subword_prefix
+            << std::endl;
 }
 
 std::vector<Token> WordPiece::tokenize(std::string sequence) {
@@ -100,13 +101,13 @@ std::vector<Token> WordPiece::tokenize(std::string sequence) {
             Token(vocab[sub_sequence], sub_sequence, {start, end});
         break;
       }
-      end -= sub_sequence.length() - 1;
+      end -= 1;
     }
     if (!cur_sequence_token.has_value()) {
       is_bad = true;
       break;
     }
-    sub_tokens.push_back(Token());
+    sub_tokens.push_back(cur_sequence_token.value());
     start = end;
   }
   if (is_bad) {

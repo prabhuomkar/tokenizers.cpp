@@ -72,6 +72,7 @@ std::wstring NFD::normalize(std::wstring normalized) {
   icu::Normalizer::normalize(unicode_normalized, UNORM_NFD, 0,
                              unicode_normalized, status);
   std::wstring result;
+  result.resize(unicode_normalized.countChar32());
   unicode_normalized.toUTF32(reinterpret_cast<UChar32*>(&result[0]),
                              unicode_normalized.countChar32(), status);
   return result;
@@ -134,6 +135,7 @@ bool is_chinese_char(wchar_t c) {
 }
 
 std::wstring BertNormalizer::do_clean_text(std::wstring normalized) {
+  std::cout << "cleaning text" << std::endl;
   std::wstring result;
   for (wchar_t c : normalized) {
     if (c != 0 && c != 0xFFFD && !is_control(c)) {
@@ -167,9 +169,9 @@ std::wstring BertNormalizer::do_handle_chinese_chars(std::wstring normalized) {
 }
 
 std::wstring BertNormalizer::do_strip_accents(std::wstring normalized) {
-  normalized = NFD().normalize(normalized);
+  std::wstring nfd_normalized = NFD().normalize(normalized);
   std::wstring result;
-  for (wchar_t c : normalized) {
+  for (wchar_t c : nfd_normalized) {
     if (u_charType(static_cast<UChar32>(c)) != U_NON_SPACING_MARK) {
       result.push_back(c);
     }

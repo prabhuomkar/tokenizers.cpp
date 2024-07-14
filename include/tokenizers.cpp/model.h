@@ -42,7 +42,6 @@ class Model {
 
 class WordPiece : public Model {
  public:
-  std::string type;
   std::unordered_map<std::string, int> vocab;
   std::string unk_token;
   int max_input_chars_per_word;
