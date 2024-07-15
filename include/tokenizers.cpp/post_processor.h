@@ -3,6 +3,8 @@
 
 #include <string>
 
+#include "simdjson.h"
+
 enum POST_PROCESSOR {
   BERT_PROCESSING,
   BYTE_LEVEL_PROCESSING,
@@ -17,6 +19,9 @@ class PostProcessor {
  public:
   PostProcessor();
 };
+
+PostProcessor with_post_processor(
+    simdjson::ondemand::object post_processor_params);
 
 class TemplateProcessing : public PostProcessor {
  public:

@@ -2,6 +2,7 @@
 #include "tokenizers.cpp/added_vocabulary.h"
 
 #include <algorithm>
+#include <memory>
 #include <optional>
 #include <string>
 #include <tuple>
@@ -37,8 +38,9 @@ AddedVocabulary::AddedVocabulary(std::vector<AddedToken> added_tokens)
   std::cout << std::endl;
 }
 
-int AddedVocabulary::add_tokens(std::vector<AddedToken> tokens, Model model,
-                                std::optional<Normalizer> normalizer) {
+int AddedVocabulary::add_tokens(
+    std::vector<AddedToken> tokens, Model model,
+    std::optional<std::unique_ptr<Normalizer>> normalizer) {
   for (auto token : tokens) {
     if (token.special && !token.content.empty() &&
         special_tokens_set.count(token.content) != 1) {
@@ -82,13 +84,13 @@ int AddedVocabulary::add_tokens(std::vector<AddedToken> tokens, Model model,
     }
   }
 
-  refresh_added_tokens(model, normalizer);
+  refresh_added_tokens(model, std::move(normalizer));
 
   return tokens.size() - ignored;
 }
 
 void AddedVocabulary::refresh_added_tokens(
-    Model model, std::optional<Normalizer> normalizer) {
+    Model model, std::optional<std::unique_ptr<Normalizer>> normalizer) {
   std::vector<std::pair<AddedToken, int>> normalized, non_normalized;
   for (auto token : special_tokens) {
     int id = model.token_to_id(token.content).value();
@@ -159,10 +161,10 @@ AddedVocabulary::find_matches(
   return result;
 }
 
-int AddedVocabulary::add_special_tokens(std::vector<AddedToken> tokens,
-                                        Model model,
-                                        std::optional<Normalizer> normalizer) {
-  return add_tokens(tokens, model, normalizer);
+int AddedVocabulary::add_special_tokens(
+    std::vector<AddedToken> tokens, Model model,
+    std::optional<std::unique_ptr<Normalizer>> normalizer) {
+  return add_tokens(tokens, model, std::move(normalizer));
 }
 
 AddedVocabularyConfig::AddedVocabularyConfig(

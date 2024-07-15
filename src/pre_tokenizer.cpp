@@ -1,12 +1,13 @@
 // Copyright 2024 Omkar Prabhu
 #include "tokenizers.cpp/pre_tokenizer.h"
 
-#include <codecvt>
 #include <functional>
 #include <iostream>
-#include <locale>
 #include <string>
 #include <unordered_map>
+
+#include "simdjson.h"
+#include "tokenizers.cpp/common.h"
 
 PRE_TOKENIZER get_pre_tokenizer(std::string type) {
   static const std::unordered_map<std::string, PRE_TOKENIZER> types = {
@@ -32,9 +33,15 @@ PreTokenizer::PreTokenizer() {}
 
 std::string PreTokenizer::pre_tokenize(std::wstring normalized) { return ""; }
 
-std::string convert_to_string(std::wstring sequence) {
-  std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-  return converter.to_bytes(sequence);
+PreTokenizer with_pre_tokenizer(
+    simdjson::ondemand::object pre_tokenizer_params) {
+  simdjson::ondemand::value val;
+  std::string type = std::string(
+      static_cast<std::string_view>(pre_tokenizer_params["type"].get_string()));
+  if (get_pre_tokenizer(type) == BERT_PRE_TOKENIZER) {
+    return BertPreTokenizer();
+  }
+  return PreTokenizer();
 }
 
 bool is_whitespace(char c) { return isspace(static_cast<unsigned char>(c)); }

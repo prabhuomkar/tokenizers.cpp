@@ -6,15 +6,22 @@
 
 #include <algorithm>
 #include <iostream>
+#include <memory>
+#include <optional>
+#include <regex>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "simdjson.h"
+#include "tokenizers.cpp/common.h"
 
 NORMALIZER get_normalizer(std::string type) {
   static const std::unordered_map<std::string, NORMALIZER> types = {
+      {"Sequence", SEQUENCE_NORMALIZER},
       {"BertNormalizer", BERT_NORMALIZER},
       {"Lowercase", LOWERCASE_NORMALIZER},
+      {"Prepend", PREPEND_NORMALIZER},
       {"NFC", NFC_NORMALIZER},
       {"NFD", NFD_NORMALIZER},
       {"NFKC", NFKC_NORMALIZER},
@@ -31,39 +38,80 @@ NORMALIZER get_normalizer(std::string type) {
   return UNKNOWN_NORMALIZER;
 }
 
-NormalizerConfig::NormalizerConfig(
-    simdjson::ondemand::object normalizer_params) {
-  simdjson::ondemand::value val;
-  type = std::string(
-      static_cast<std::string_view>(normalizer_params["type"].get_string()));
-
-  val = normalizer_params["clean_text"].value();
-  clean_text = val.type() == simdjson::ondemand::json_type::null
-                   ? false
-                   : static_cast<bool>(val.get_bool());
-
-  val = normalizer_params["handle_chinese_chars"].value();
-  handle_chinese_chars = val.type() == simdjson::ondemand::json_type::null
-                             ? false
-                             : static_cast<bool>(val.get_bool());
-  val = normalizer_params["strip_accents"].value();
-  strip_accents = val.type() == simdjson::ondemand::json_type::null
-                      ? false
-                      : static_cast<bool>(val.get_bool());
-
-  val = normalizer_params["lowercase"].value();
-  lowercase = val.type() == simdjson::ondemand::json_type::null
-                  ? false
-                  : static_cast<bool>(val.get_bool());
+std::wstring Normalizer::normalize(std::wstring normalized) const {
+  return L"";
 }
 
-Normalizer::Normalizer() {}
+std::optional<std::unique_ptr<Normalizer>> with_normalizer(
+    simdjson::ondemand::object normalizer_params) {
+  simdjson::ondemand::value val;
+  std::string type = std::string(
+      static_cast<std::string_view>(normalizer_params["type"].get_string()));
+  if (get_normalizer(type) == SEQUENCE_NORMALIZER) {
+    simdjson::ondemand::array seq_normalizers_params =
+        normalizer_params["normalizers"].get_array();
+    std::vector<std::unique_ptr<Normalizer>> seq_normalizers;
+    for (simdjson::ondemand::value val : seq_normalizers_params) {
+      simdjson::ondemand::object seq_normalizer_params = val.get_object();
+      std::optional<std::unique_ptr<Normalizer>> seq_normalizer =
+          with_normalizer(seq_normalizer_params);
+      if (seq_normalizer.has_value()) {
+        seq_normalizers.push_back(std::move(seq_normalizer.value()));
+      }
+    }
+    return std::make_unique<SequenceNormalizer>(
+        SequenceNormalizer(std::move(seq_normalizers)));
+  } else if (get_normalizer(type) == NFD_NORMALIZER) {
+    return std::make_unique<NFD>(NFD());
+  } else if (get_normalizer(type) == PREPEND_NORMALIZER) {
+    val = normalizer_params["prepend"].value();
+    std::string prepend =
+        std::string(val.type() == simdjson::ondemand::json_type::null
+                        ? ""
+                        : static_cast<std::string_view>(val.get_string()));
+    return std::make_unique<Prepend>(Prepend(prepend));
+  } else if (get_normalizer(type) == REPLACE_NORMALIZER) {
+    val = normalizer_params["pattern"].value();
+    std::string pattern =
+        std::string(val.type() == simdjson::ondemand::json_type::null
+                        ? ""
+                        : static_cast<std::string_view>(
+                              val["String"].value().get_string()));
+    val = normalizer_params["content"].value();
+    std::string content =
+        std::string(val.type() == simdjson::ondemand::json_type::null
+                        ? ""
+                        : static_cast<std::string_view>(val.get_string()));
+    return std::make_unique<Replace>(Replace(pattern, content));
+  } else if (get_normalizer(type) == BERT_NORMALIZER) {
+    val = normalizer_params["clean_text"].value();
+    bool clean_text = val.type() == simdjson::ondemand::json_type::null
+                          ? false
+                          : static_cast<bool>(val.get_bool());
 
-std::wstring Normalizer::normalize(std::wstring normalized) { return L""; }
+    val = normalizer_params["handle_chinese_chars"].value();
+    bool handle_chinese_chars =
+        val.type() == simdjson::ondemand::json_type::null
+            ? false
+            : static_cast<bool>(val.get_bool());
+    val = normalizer_params["strip_accents"].value();
+    bool strip_accents = val.type() == simdjson::ondemand::json_type::null
+                             ? false
+                             : static_cast<bool>(val.get_bool());
+
+    val = normalizer_params["lowercase"].value();
+    bool lowercase = val.type() == simdjson::ondemand::json_type::null
+                         ? false
+                         : static_cast<bool>(val.get_bool());
+    return std::make_unique<BertNormalizer>(BertNormalizer(
+        clean_text, handle_chinese_chars, strip_accents, lowercase));
+  }
+  return std::nullopt;
+}
 
 NFD::NFD() {}
 
-std::wstring NFD::normalize(std::wstring normalized) {
+std::wstring NFD::normalize(std::wstring normalized) const {
   // TODO(omkar): Handle errors
   UErrorCode status = U_ZERO_ERROR;
   icu::UnicodeString unicode_normalized = icu::UnicodeString::fromUTF32(
@@ -85,7 +133,7 @@ BertNormalizer::BertNormalizer(bool clean_text, bool handle_chinese_chars,
       strip_accents(strip_accents),
       lowercase(lowercase) {}
 
-std::wstring BertNormalizer::normalize(std::wstring normalized) {
+std::wstring BertNormalizer::normalize(std::wstring normalized) const {
   if (clean_text) {
     normalized = do_clean_text(normalized);
   }
@@ -130,7 +178,7 @@ bool is_chinese_char(wchar_t c) {
          (c >= 0xF900 && c <= 0xFAFF) || (c >= 0x2F800 && c <= 0x2FA1F);
 }
 
-std::wstring BertNormalizer::do_clean_text(std::wstring normalized) {
+std::wstring BertNormalizer::do_clean_text(std::wstring normalized) const {
   std::cout << "cleaning text" << std::endl;
   std::wstring result;
   for (wchar_t c : normalized) {
@@ -147,7 +195,8 @@ std::wstring BertNormalizer::do_clean_text(std::wstring normalized) {
   return result;
 }
 
-std::wstring BertNormalizer::do_handle_chinese_chars(std::wstring normalized) {
+std::wstring BertNormalizer::do_handle_chinese_chars(
+    std::wstring normalized) const {
   std::vector<std::pair<wchar_t, int>> new_chars;
   for (wchar_t c : normalized) {
     if (is_chinese_char(c)) {
@@ -164,7 +213,7 @@ std::wstring BertNormalizer::do_handle_chinese_chars(std::wstring normalized) {
   return result;
 }
 
-std::wstring BertNormalizer::do_strip_accents(std::wstring normalized) {
+std::wstring BertNormalizer::do_strip_accents(std::wstring normalized) const {
   std::wstring nfd_normalized = NFD().normalize(normalized);
   std::wstring result;
   for (wchar_t c : nfd_normalized) {
@@ -175,8 +224,46 @@ std::wstring BertNormalizer::do_strip_accents(std::wstring normalized) {
   return result;
 }
 
-std::wstring BertNormalizer::do_lowercase(std::wstring normalized) {
+std::wstring BertNormalizer::do_lowercase(std::wstring normalized) const {
   std::transform(normalized.begin(), normalized.end(), normalized.begin(),
                  std::towlower);
   return normalized;
+}
+
+SequenceNormalizer::SequenceNormalizer(
+    std::vector<std::unique_ptr<Normalizer>> normalizers)
+    : normalizers(std::move(normalizers)) {}
+
+std::wstring SequenceNormalizer::normalize(std::wstring normalized) const {
+  for (const std::unique_ptr<Normalizer>& normalizer : normalizers) {
+    normalized = normalizer->normalize(normalized);
+  }
+  return normalized;
+}
+
+Prepend::Prepend(std::string prepend) : prepend(prepend) {}
+
+std::wstring Prepend::normalize(std::wstring normalized) const {
+  int start = 0, end = 0;
+  std::wstring result, current_word;
+  while (end != std::wstring::npos) {
+    end = normalized.find(L" ", start);
+    if (end == std::wstring::npos) {
+      current_word = normalized.substr(start);
+    } else {
+      current_word = normalized.substr(start, end - start);
+    }
+    result += (convert_from_string(prepend) + current_word + L" ");
+    start = end + 1;
+  }
+  return result;
+}
+
+Replace::Replace(std::string pattern, std::string content)
+    : pattern(pattern), content(content) {}
+
+std::wstring Replace::normalize(std::wstring normalized) const {
+  std::wregex regex_pattern(convert_from_string(pattern));
+  return std::regex_replace(normalized, regex_pattern,
+                            convert_from_string(content));
 }

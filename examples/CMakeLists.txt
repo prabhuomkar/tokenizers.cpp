@@ -20,5 +20,7 @@ include_directories(../third_party/simdjson/include)
 find_package(ICU REQUIRED COMPONENTS uc i18n)
 
 add_executable(bert-base-uncased bert-base-uncased.cpp)
+add_executable(llama-tokenizer llama-tokenizer.cpp)
 
 target_link_libraries(bert-base-uncased ${TOKENIZERS_CPP_LIB} ICU::uc ICU::i18n)
+target_link_libraries(llama-tokenizer ${TOKENIZERS_CPP_LIB} ICU::uc ICU::i18n)

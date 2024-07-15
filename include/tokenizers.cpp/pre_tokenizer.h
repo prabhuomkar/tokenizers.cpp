@@ -3,6 +3,8 @@
 
 #include <string>
 
+#include "simdjson.h"
+
 enum PRE_TOKENIZER {
   BERT_PRE_TOKENIZER,
   BYTE_LEVEL_PRE_TOKENIZER,
@@ -27,6 +29,9 @@ class PreTokenizer {
   PreTokenizer();
   std::string pre_tokenize(std::wstring normalized);
 };
+
+PreTokenizer with_pre_tokenizer(
+    simdjson::ondemand::object pre_tokenizer_params);
 
 class BertPreTokenizer : public PreTokenizer {
  public:

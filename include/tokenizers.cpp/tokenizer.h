@@ -1,6 +1,7 @@
 // Copyright 2024 Omkar Prabhu
 #pragma once
 
+#include <memory>
 #include <optional>
 #include <string>
 #include <unordered_map>
@@ -29,7 +30,7 @@ class Tokenizer {
  private:
   std::string version;
   AddedVocabulary added_vocabulary;
-  std::optional<Normalizer> normalizer;
+  std::optional<std::unique_ptr<Normalizer>> normalizer;
   PreTokenizer pre_tokenizer;
   Model model;
   PostProcessor post_processor;
@@ -37,9 +38,4 @@ class Tokenizer {
 
   AddedVocabulary with_added_vocabulary(
       AddedVocabularyConfig added_vocabulary_config);
-  std::optional<Normalizer> with_normalizer(NormalizerConfig normalizer_config);
-  PreTokenizer with_pre_tokenizer(std::string type);
-  Model with_model(ModelConfig model_config);
-  Decoder with_decoder(DecoderConfig decoder_config);
-  PostProcessor with_post_processor(std::string type);
 };

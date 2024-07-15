@@ -16,18 +16,12 @@ enum DECODER {
 
 DECODER get_decoder(std::string type);
 
-class DecoderConfig {
- public:
-  std::string type;
-  std::string prefix;
-  bool cleanup;
-  explicit DecoderConfig(simdjson::ondemand::object decoder_params);
-};
-
 class Decoder {
  public:
   Decoder();
 };
+
+Decoder with_decoder(simdjson::ondemand::object decoder_params);
 
 class WordPieceDecoder : public Decoder {
  public:

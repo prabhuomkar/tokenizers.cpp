@@ -24,34 +24,6 @@ MODEL get_model(std::string type) {
   return UNKNOWN_MODEL;
 }
 
-ModelConfig::ModelConfig(simdjson::ondemand::object model_params) {
-  simdjson::ondemand::value val;
-  type = std::string(
-      static_cast<std::string_view>(model_params["type"].get_string()));
-
-  val = model_params["vocab"].value();
-  vocab = val.type() == simdjson::ondemand::json_type::null
-              ? std::unordered_map<std::string, int>()
-              : get_map_ints_from_json(val.get_object());
-
-  val = model_params["unk_token"].value();
-  unk_token =
-      val.type() == simdjson::ondemand::json_type::null
-          ? ""
-          : std::string(static_cast<std::string_view>(val.get_string()));
-
-  val = model_params["max_input_chars_per_word"].value();
-  max_input_chars_per_word = val.type() == simdjson::ondemand::json_type::null
-                                 ? 0
-                                 : static_cast<int>(val.get_int64());
-
-  val = model_params["continuing_subword_prefix"].value();
-  continuing_subword_prefix =
-      val.type() == simdjson::ondemand::json_type::null
-          ? ""
-          : std::string(static_cast<std::string_view>(val.get_string()));
-}
-
 Model::Model() {}
 
 Model::Model(std::unordered_map<std::string, int> vocab) : vocab(vocab) {}
@@ -64,6 +36,37 @@ std::optional<int> Model::token_to_id(std::string token) {
     return it->second;
   }
   return std::nullopt;
+}
+
+Model with_model(simdjson::ondemand::object model_params) {
+  simdjson::ondemand::value val;
+  std::string type = std::string(
+      static_cast<std::string_view>(model_params["type"].get_string()));
+  val = model_params["vocab"].value();
+  std::unordered_map<std::string, int> vocab =
+      val.type() == simdjson::ondemand::json_type::null
+          ? std::unordered_map<std::string, int>()
+          : get_map_ints_from_json(val.get_object());
+  if (get_model(type) == WORD_PIECE_MODEL) {
+    val = model_params["unk_token"].value();
+    std::string unk_token =
+        val.type() == simdjson::ondemand::json_type::null
+            ? ""
+            : std::string(static_cast<std::string_view>(val.get_string()));
+    val = model_params["max_input_chars_per_word"].value();
+    int max_input_chars_per_word =
+        val.type() == simdjson::ondemand::json_type::null
+            ? 0
+            : static_cast<int>(val.get_int64());
+    val = model_params["continuing_subword_prefix"].value();
+    std::string continuing_subword_prefix =
+        val.type() == simdjson::ondemand::json_type::null
+            ? ""
+            : std::string(static_cast<std::string_view>(val.get_string()));
+    return WordPiece(vocab, unk_token, max_input_chars_per_word,
+                     continuing_subword_prefix);
+  }
+  return Model(vocab);
 }
 
 WordPiece::WordPiece(std::unordered_map<std::string, int> vocab,

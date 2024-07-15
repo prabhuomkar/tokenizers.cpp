@@ -19,16 +19,6 @@ enum MODEL {
 
 MODEL get_model(std::string type);
 
-class ModelConfig {
- public:
-  std::string type;
-  std::unordered_map<std::string, int> vocab;
-  std::string unk_token;
-  int max_input_chars_per_word;
-  std::string continuing_subword_prefix;
-  explicit ModelConfig(simdjson::ondemand::object model_params);
-};
-
 class Model {
  public:
   Model();
@@ -39,6 +29,8 @@ class Model {
  private:
   std::unordered_map<std::string, int> vocab;
 };
+
+Model with_model(simdjson::ondemand::object model_params);
 
 class WordPiece : public Model {
  public:

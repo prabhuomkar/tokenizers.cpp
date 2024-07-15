@@ -1,6 +1,7 @@
 // Copyright 2024 Omkar Prabhu
 #pragma once
 
+#include <codecvt>
 #include <string>
 #include <utility>
 #include <vector>
@@ -23,3 +24,7 @@ class Token {
   Token();
   Token(int id, std::string value, std::pair<int, int> offsets);
 };
+
+std::string convert_to_string(std::wstring sequence);
+
+std::wstring convert_from_string(std::string sequence);
