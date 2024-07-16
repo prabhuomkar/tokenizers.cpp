@@ -12,7 +12,7 @@ Tokenizers in C++
 - [iOS App]()
 
 ## Documentation
-- [tokenizers.cpp Docs]() is bundled with the source code.
+- [tokenizers.cpp documentation]() is bundled with the source code.
 
 ## Building
 This project supports [CMake]() out of the box.

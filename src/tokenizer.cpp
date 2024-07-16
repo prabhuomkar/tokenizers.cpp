@@ -1,6 +1,7 @@
 // Copyright 2024 Omkar Prabhu
 #include "tokenizers.cpp/tokenizer.h"
 
+#include <memory>
 #include <optional>
 #include <string>
 #include <vector>

@@ -30,8 +30,8 @@ class Tokenizer {
  private:
   std::string version;
   AddedVocabulary added_vocabulary;
-  std::optional<std::unique_ptr<Normalizer>> normalizer;
-  PreTokenizer pre_tokenizer;
+  std::unique_ptr<Normalizer> normalizer;
+  std::unique_ptr<PreTokenizer> pre_tokenizer;
   Model model;
   PostProcessor post_processor;
   Decoder decoder;

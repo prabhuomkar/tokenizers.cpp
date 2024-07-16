@@ -1,6 +1,7 @@
 // Copyright 2024 Omkar Prabhu
 #pragma once
 
+#include <memory>
 #include <string>
 
 #include "simdjson.h"
@@ -26,15 +27,15 @@ get_pre_tokenizer(std::string type);
 
 class PreTokenizer {
  public:
-  PreTokenizer();
-  std::string pre_tokenize(std::wstring normalized);
+  virtual ~PreTokenizer() = default;
+  virtual std::string pre_tokenize(std::wstring normalized) const = 0;
 };
 
-PreTokenizer with_pre_tokenizer(
+std::unique_ptr<PreTokenizer> with_pre_tokenizer(
     simdjson::ondemand::object pre_tokenizer_params);
 
 class BertPreTokenizer : public PreTokenizer {
  public:
   BertPreTokenizer();
-  std::string pre_tokenize(std::wstring normalized);
+  std::string pre_tokenize(std::wstring normalized) const override;
 };

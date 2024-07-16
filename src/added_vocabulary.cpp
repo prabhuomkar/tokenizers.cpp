@@ -38,9 +38,8 @@ AddedVocabulary::AddedVocabulary(std::vector<AddedToken> added_tokens)
   std::cout << std::endl;
 }
 
-int AddedVocabulary::add_tokens(
-    std::vector<AddedToken> tokens, Model model,
-    std::optional<std::unique_ptr<Normalizer>> normalizer) {
+int AddedVocabulary::add_tokens(std::vector<AddedToken> tokens, Model model,
+                                std::unique_ptr<Normalizer> normalizer) {
   for (auto token : tokens) {
     if (token.special && !token.content.empty() &&
         special_tokens_set.count(token.content) != 1) {
@@ -90,7 +89,7 @@ int AddedVocabulary::add_tokens(
 }
 
 void AddedVocabulary::refresh_added_tokens(
-    Model model, std::optional<std::unique_ptr<Normalizer>> normalizer) {
+    Model model, std::unique_ptr<Normalizer> normalizer) {
   std::vector<std::pair<AddedToken, int>> normalized, non_normalized;
   for (auto token : special_tokens) {
     int id = model.token_to_id(token.content).value();
@@ -163,7 +162,7 @@ AddedVocabulary::find_matches(
 
 int AddedVocabulary::add_special_tokens(
     std::vector<AddedToken> tokens, Model model,
-    std::optional<std::unique_ptr<Normalizer>> normalizer) {
+    std::unique_ptr<Normalizer> normalizer) {
   return add_tokens(tokens, model, std::move(normalizer));
 }
 

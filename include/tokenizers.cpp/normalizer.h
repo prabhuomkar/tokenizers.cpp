@@ -33,7 +33,7 @@ class Normalizer {
   virtual std::wstring normalize(std::wstring normalized) const = 0;
 };
 
-std::optional<std::unique_ptr<Normalizer>> with_normalizer(
+std::unique_ptr<Normalizer> with_normalizer(
     simdjson::ondemand::object normalizer_params);
 
 class BertNormalizer : public Normalizer {

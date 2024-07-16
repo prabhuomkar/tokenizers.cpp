@@ -42,7 +42,7 @@ std::wstring Normalizer::normalize(std::wstring normalized) const {
   return L"";
 }
 
-std::optional<std::unique_ptr<Normalizer>> with_normalizer(
+std::unique_ptr<Normalizer> with_normalizer(
     simdjson::ondemand::object normalizer_params) {
   simdjson::ondemand::value val;
   std::string type = std::string(
@@ -53,10 +53,10 @@ std::optional<std::unique_ptr<Normalizer>> with_normalizer(
     std::vector<std::unique_ptr<Normalizer>> seq_normalizers;
     for (simdjson::ondemand::value val : seq_normalizers_params) {
       simdjson::ondemand::object seq_normalizer_params = val.get_object();
-      std::optional<std::unique_ptr<Normalizer>> seq_normalizer =
+      std::unique_ptr<Normalizer> seq_normalizer =
           with_normalizer(seq_normalizer_params);
-      if (seq_normalizer.has_value()) {
-        seq_normalizers.push_back(std::move(seq_normalizer.value()));
+      if (seq_normalizer != nullptr) {
+        seq_normalizers.push_back(std::move(seq_normalizer));
       }
     }
     return std::make_unique<SequenceNormalizer>(
@@ -106,7 +106,7 @@ std::optional<std::unique_ptr<Normalizer>> with_normalizer(
     return std::make_unique<BertNormalizer>(BertNormalizer(
         clean_text, handle_chinese_chars, strip_accents, lowercase));
   }
-  return std::nullopt;
+  return nullptr;
 }
 
 NFD::NFD() {}

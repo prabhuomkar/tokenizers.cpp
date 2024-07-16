@@ -3,6 +3,7 @@
 
 #include <functional>
 #include <iostream>
+#include <memory>
 #include <string>
 #include <unordered_map>
 
@@ -29,19 +30,15 @@ PRE_TOKENIZER get_pre_tokenizer(std::string type) {
   return UNKNOWN_PRE_TOKENIZER;
 }
 
-PreTokenizer::PreTokenizer() {}
-
-std::string PreTokenizer::pre_tokenize(std::wstring normalized) { return ""; }
-
-PreTokenizer with_pre_tokenizer(
+std::unique_ptr<PreTokenizer> with_pre_tokenizer(
     simdjson::ondemand::object pre_tokenizer_params) {
   simdjson::ondemand::value val;
   std::string type = std::string(
       static_cast<std::string_view>(pre_tokenizer_params["type"].get_string()));
   if (get_pre_tokenizer(type) == BERT_PRE_TOKENIZER) {
-    return BertPreTokenizer();
+    return std::make_unique<BertPreTokenizer>(BertPreTokenizer());
   }
-  return PreTokenizer();
+  return nullptr;
 }
 
 bool is_whitespace(char c) { return isspace(static_cast<unsigned char>(c)); }
@@ -70,7 +67,7 @@ std::string split(std::string input, std::function<bool(char)> split_fn,
 
 BertPreTokenizer::BertPreTokenizer() {}
 
-std::string BertPreTokenizer::pre_tokenize(std::wstring normalized) {
+std::string BertPreTokenizer::pre_tokenize(std::wstring normalized) const {
   std::string pre_tokenized = convert_to_string(normalized);
   pre_tokenized =
       split(pre_tokenized, is_whitespace, SPLIT_DELIMITER_BEHAVIOR::REMOVED);
