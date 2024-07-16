@@ -25,6 +25,23 @@ class Token {
   Token(int id, std::string value, std::pair<int, int> offsets);
 };
 
+class Split {
+ public:
+  std::string normalized;
+  std::pair<int, int> offsets;
+  Split();
+  Split(std::string normalized, std::pair<int, int> offsets);
+  Split(const Split& other)
+      : normalized(other.normalized), offsets(other.offsets) {}
+  Split& operator=(const Split& other) {
+    if (this != &other) {
+      normalized = other.normalized;
+      offsets = other.offsets;
+    }
+    return *this;
+  }
+};
+
 std::string convert_to_string(std::wstring sequence);
 
 std::wstring convert_from_string(std::string sequence);

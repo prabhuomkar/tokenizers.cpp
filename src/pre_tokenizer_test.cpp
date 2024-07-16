@@ -5,8 +5,10 @@
 
 #include <memory>
 #include <typeinfo>
+#include <vector>
 
 #include "simdjson.h"
+#include "tokenizers.cpp/common.h"
 
 std::unique_ptr<PreTokenizer> get_pre_tokenizer_from_string(std::string json) {
   simdjson::ondemand::parser parser;
@@ -16,12 +18,30 @@ std::unique_ptr<PreTokenizer> get_pre_tokenizer_from_string(std::string json) {
   return with_pre_tokenizer(pre_tokenizer_params);
 }
 
+void validate_splits(std::vector<Split> expected, std::vector<Split> got) {
+  EXPECT_EQ(expected.size(), got.size());
+  for (int i = 0; i < expected.size(); i++) {
+    EXPECT_EQ(expected[i].normalized, got[i].normalized);
+    EXPECT_EQ(expected[i].offsets.first, got[i].offsets.first);
+    EXPECT_EQ(expected[i].offsets.second, got[i].offsets.second);
+  }
+}
+
 TEST(BertPreTokenizerTest, CleanText) {
   std::unique_ptr<PreTokenizer> pre_tokenizer = get_pre_tokenizer_from_string(
       "{\"type\":\"BertPreTokenizer\",\"clean_text\":true,\"handle_chinese_"
       "chars\":false,\"strip_accents\":null,\"lowercase\":false}");
   EXPECT_NE(pre_tokenizer, nullptr);
-  std::string got =
-      pre_tokenizer->pre_tokenize(L"Hello World!\tThis is a test.\n");
-  EXPECT_EQ("HelloWorld!Thisisatest.", got);
+  std::vector<Split> expected = {
+      Split("Hey", {0, 3}),   Split("friend", {4, 10}), Split("!", {10, 11}),
+      Split("How", {16, 19}), Split("are", {20, 23}),   Split("you", {24, 27}),
+      Split("?", {27, 28}),   Split("!", {28, 29}),     Split("?", {29, 30})};
+  std::vector<Split> got =
+      pre_tokenizer->pre_tokenize(L"Hey friend!     How are you?!?");
+  validate_splits(expected, got);
+  expected = {Split("野", {0, 3}),        Split("口", {4, 7}),
+              Split("里", {8, 11}),       Split("佳", {12, 15}),
+              Split("Noguchi", {16, 23}), Split("Rika", {24, 28})};
+  got = pre_tokenizer->pre_tokenize(L"野 口 里 佳 Noguchi Rika");
+  validate_splits(expected, got);
 }

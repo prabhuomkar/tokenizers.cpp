@@ -3,8 +3,10 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "simdjson.h"
+#include "tokenizers.cpp/common.h"
 
 enum PRE_TOKENIZER {
   BERT_PRE_TOKENIZER,
@@ -28,7 +30,7 @@ get_pre_tokenizer(std::string type);
 class PreTokenizer {
  public:
   virtual ~PreTokenizer() = default;
-  virtual std::string pre_tokenize(std::wstring normalized) const = 0;
+  virtual std::vector<Split> pre_tokenize(std::wstring normalized) const = 0;
 };
 
 std::unique_ptr<PreTokenizer> with_pre_tokenizer(
@@ -37,5 +39,5 @@ std::unique_ptr<PreTokenizer> with_pre_tokenizer(
 class BertPreTokenizer : public PreTokenizer {
  public:
   BertPreTokenizer();
-  std::string pre_tokenize(std::wstring normalized) const override;
+  std::vector<Split> pre_tokenize(std::wstring normalized) const override;
 };

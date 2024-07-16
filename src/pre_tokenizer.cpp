@@ -6,6 +6,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "simdjson.h"
 #include "tokenizers.cpp/common.h"
@@ -45,33 +46,64 @@ bool is_whitespace(char c) { return isspace(static_cast<unsigned char>(c)); }
 
 bool is_bert_punc(char c) { return ispunct(static_cast<unsigned char>(c)); }
 
-std::string split(std::string input, std::function<bool(char)> split_fn,
-                  SPLIT_DELIMITER_BEHAVIOR pattern) {
-  std::string result;
-  for (char c : input) {
-    if (split_fn(c)) {
-      switch (pattern) {
-        case REMOVED:
-          result += "";
-          break;
-        case ISOLATED:
-          result += c;
-          break;
-      }
-    } else {
-      result += c;
+std::vector<int> find_matches(std::string input,
+                              std::function<bool(char)> match_fn) {
+  std::vector<int> matches;
+  for (int i = 0; i < input.size(); i++) {
+    if (match_fn(input[i])) {
+      matches.push_back(i);
     }
   }
-  return result;
+  return matches;
+}
+
+std::vector<Split> split(std::vector<Split> splits,
+                         std::function<bool(char)> split_fn,
+                         SPLIT_DELIMITER_BEHAVIOR pattern) {
+  std::vector<Split> new_splits;
+  for (Split split : splits) {
+    int offset = 0;
+    std::vector<int> matches = find_matches(split.normalized, split_fn);
+    for (int match : matches) {
+      std::cout << match << std::endl;
+      if (split.normalized.substr(offset, match - offset).size() != 0) {
+        new_splits.push_back(
+            Split(split.normalized.substr(offset, match - offset),
+                  {offset + split.offsets.first, match + split.offsets.first}));
+      }
+      switch (pattern) {
+        case REMOVED:
+          break;
+        case ISOLATED:
+          new_splits.push_back(Split(
+              split.normalized.substr(match, 1),
+              {match + split.offsets.first, match + split.offsets.first + 1}));
+          break;
+      }
+      offset = match + 1;
+    }
+    if (offset <= split.normalized.length() - 1) {
+      new_splits.push_back(Split(
+          split.normalized.substr(offset, split.normalized.length() - offset),
+          {offset + split.offsets.first,
+           split.normalized.length() + split.offsets.first}));
+    }
+  }
+  for (auto split : new_splits) {
+    std::cout << split.normalized << "(" << split.offsets.first << ","
+              << split.offsets.second << ")" << std::endl;
+  }
+  return new_splits;
 }
 
 BertPreTokenizer::BertPreTokenizer() {}
 
-std::string BertPreTokenizer::pre_tokenize(std::wstring normalized) const {
+std::vector<Split> BertPreTokenizer::pre_tokenize(
+    std::wstring normalized) const {
   std::string pre_tokenized = convert_to_string(normalized);
-  pre_tokenized =
-      split(pre_tokenized, is_whitespace, SPLIT_DELIMITER_BEHAVIOR::REMOVED);
-  pre_tokenized =
-      split(pre_tokenized, is_whitespace, SPLIT_DELIMITER_BEHAVIOR::ISOLATED);
-  return pre_tokenized;
+  std::vector<Split> splits = {
+      Split(pre_tokenized, {0, pre_tokenized.length()})};
+  splits = split(splits, is_whitespace, SPLIT_DELIMITER_BEHAVIOR::REMOVED);
+  splits = split(splits, is_bert_punc, SPLIT_DELIMITER_BEHAVIOR::ISOLATED);
+  return splits;
 }

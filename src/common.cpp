@@ -12,6 +12,11 @@ Token::Token() {}
 Token::Token(int id, std::string value, std::pair<int, int> offsets)
     : id(id), value(value), offsets(offsets) {}
 
+Split::Split() {}
+
+Split::Split(std::string normalized, std::pair<int, int> offsets)
+    : normalized(normalized), offsets(offsets) {}
+
 std::string convert_to_string(std::wstring sequence) {
   std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
   return converter.to_bytes(sequence);
