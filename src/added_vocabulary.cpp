@@ -38,7 +38,8 @@ AddedVocabulary::AddedVocabulary(std::vector<AddedToken> added_tokens)
   std::cout << std::endl;
 }
 
-int AddedVocabulary::add_tokens(std::vector<AddedToken> tokens, Model model,
+int AddedVocabulary::add_tokens(std::vector<AddedToken> tokens,
+                                std::unique_ptr<Model> model,
                                 std::unique_ptr<Normalizer> normalizer) {
   for (auto token : tokens) {
     if (token.special && !token.content.empty() &&
@@ -59,8 +60,8 @@ int AddedVocabulary::add_tokens(std::vector<AddedToken> tokens, Model model,
     auto it = added_tokens_map.find(token.content);
     if (it != added_tokens_map.end()) {
       new_id = it->second;
-    } else if (model.token_to_id(token.content).has_value()) {
-      new_id = model.token_to_id(token.content).value();
+    } else if (model->token_to_id(token.content).has_value()) {
+      new_id = model->token_to_id(token.content).value();
     } else {
       auto max_val_token =
           std::max_element(added_tokens_map.begin(), added_tokens_map.end(),
@@ -68,11 +69,11 @@ int AddedVocabulary::add_tokens(std::vector<AddedToken> tokens, Model model,
                               const std::pair<std::string, int>& b) {
                              return a.second < b.second;
                            });
-      if (model.get_vocab_size() == 0 ||
-          max_val_token->second >= model.get_vocab_size()) {
+      if (model->get_vocab_size() == 0 ||
+          max_val_token->second >= model->get_vocab_size()) {
         new_id = max_val_token->second + 1;
       } else {
-        new_id = model.get_vocab_size();
+        new_id = model->get_vocab_size();
       }
     }
     added_tokens_map[token.content] = new_id;
@@ -83,16 +84,16 @@ int AddedVocabulary::add_tokens(std::vector<AddedToken> tokens, Model model,
     }
   }
 
-  refresh_added_tokens(model, std::move(normalizer));
+  refresh_added_tokens(std::move(model), std::move(normalizer));
 
   return tokens.size() - ignored;
 }
 
 void AddedVocabulary::refresh_added_tokens(
-    Model model, std::unique_ptr<Normalizer> normalizer) {
+    std::unique_ptr<Model> model, std::unique_ptr<Normalizer> normalizer) {
   std::vector<std::pair<AddedToken, int>> normalized, non_normalized;
   for (auto token : special_tokens) {
-    int id = model.token_to_id(token.content).value();
+    int id = model->token_to_id(token.content).value();
     if (token.normalized) {
       normalized.push_back({token, id});
     } else {
@@ -100,7 +101,7 @@ void AddedVocabulary::refresh_added_tokens(
     }
   }
   for (auto token : added_tokens) {
-    int id = model.token_to_id(token.content).value();
+    int id = model->token_to_id(token.content).value();
     if (token.normalized) {
       normalized.push_back({token, id});
     } else {
@@ -161,9 +162,9 @@ AddedVocabulary::find_matches(
 }
 
 int AddedVocabulary::add_special_tokens(
-    std::vector<AddedToken> tokens, Model model,
+    std::vector<AddedToken> tokens, std::unique_ptr<Model> model,
     std::unique_ptr<Normalizer> normalizer) {
-  return add_tokens(tokens, model, std::move(normalizer));
+  return add_tokens(tokens, std::move(model), std::move(normalizer));
 }
 
 AddedVocabularyConfig::AddedVocabularyConfig(

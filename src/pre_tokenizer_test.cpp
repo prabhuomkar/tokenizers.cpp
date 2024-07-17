@@ -27,7 +27,7 @@ void validate_splits(std::vector<Split> expected, std::vector<Split> got) {
   }
 }
 
-TEST(BertPreTokenizerTest, CleanText) {
+TEST(BertPreTokenizerTest, Simple) {
   std::unique_ptr<PreTokenizer> pre_tokenizer = get_pre_tokenizer_from_string(
       "{\"type\":\"BertPreTokenizer\",\"clean_text\":true,\"handle_chinese_"
       "chars\":false,\"strip_accents\":null,\"lowercase\":false}");

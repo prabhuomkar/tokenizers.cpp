@@ -3,7 +3,7 @@
 
 #include <gtest/gtest.h>
 
-void assertTokens(std::vector<Token> expected, std::vector<Token> got) {
+void assert_tokens(std::vector<Token> expected, std::vector<Token> got) {
   EXPECT_EQ(expected.size(), got.size());
   for (int i = 0; i < expected.size(); i++) {
     EXPECT_EQ(expected[i].id, got[i].id);
@@ -17,7 +17,7 @@ TEST(WordPieceModelTest, EmptyVocab) {
   WordPiece model({});
   std::vector<Token> expected = {Token(0, "[UNK]", {0, input.length()})};
   std::vector<Token> got = model.tokenize(input);
-  assertTokens(expected, got);
+  assert_tokens(expected, got);
 }
 
 TEST(WordPieceModelTest, Vocab) {
@@ -27,7 +27,7 @@ TEST(WordPieceModelTest, Vocab) {
       Token(333, "[UNK]", {0, input.length()}),
   };
   std::vector<Token> got = model.tokenize(input);
-  assertTokens(expected, got);
+  assert_tokens(expected, got);
 }
 
 TEST(WordPieceModelTest, UNKToken) {
@@ -37,7 +37,7 @@ TEST(WordPieceModelTest, UNKToken) {
       Token(333, "[TEST_UNK]", {0, input.length()}),
   };
   std::vector<Token> got = model.tokenize(input);
-  assertTokens(expected, got);
+  assert_tokens(expected, got);
 }
 
 TEST(WordPieceModelTest, MaxInputCharsPerWord) {
@@ -47,7 +47,7 @@ TEST(WordPieceModelTest, MaxInputCharsPerWord) {
       Token(333, "[UNK]", {0, input.length()}),
   };
   std::vector<Token> got = model.tokenize(input);
-  assertTokens(expected, got);
+  assert_tokens(expected, got);
 }
 
 TEST(WordPieceModelTest, ContinuingSubWordPrefix) {
@@ -59,5 +59,5 @@ TEST(WordPieceModelTest, ContinuingSubWordPrefix) {
       Token(111, "TEST_## world", {5, 11}),
   };
   std::vector<Token> got = model.tokenize(input);
-  assertTokens(expected, got);
+  assert_tokens(expected, got);
 }

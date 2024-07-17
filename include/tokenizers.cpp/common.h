@@ -31,15 +31,6 @@ class Split {
   std::pair<int, int> offsets;
   Split();
   Split(std::string normalized, std::pair<int, int> offsets);
-  Split(const Split& other)
-      : normalized(other.normalized), offsets(other.offsets) {}
-  Split& operator=(const Split& other) {
-    if (this != &other) {
-      normalized = other.normalized;
-      offsets = other.offsets;
-    }
-    return *this;
-  }
 };
 
 std::string convert_to_string(std::wstring sequence);

@@ -75,12 +75,22 @@ std::string Tokenizer::decode(std::vector<int> ids, bool skip_special_tokens) {
 }
 
 int Tokenizer::add_tokens(std::vector<AddedToken> tokens) {
-  return added_vocabulary.add_tokens(tokens, model, std::move(normalizer));
+  return added_vocabulary.add_tokens(tokens, std::move(model),
+                                     std::move(normalizer));
 }
 
 int Tokenizer::add_special_tokens(std::vector<AddedToken> tokens) {
-  return added_vocabulary.add_special_tokens(tokens, model,
+  return added_vocabulary.add_special_tokens(tokens, std::move(model),
                                              std::move(normalizer));
+}
+
+std::vector<Token> Tokenizer::do_tokenize(std::vector<Split> splits) {
+  std::vector<Token> tokens;
+  for (Split split : splits) {
+    std::vector<Token> split_tokens = model->tokenize(split.normalized);
+    tokens.insert(tokens.end(), split_tokens.begin(), split_tokens.end());
+  }
+  return tokens;
 }
 
 AddedVocabulary Tokenizer::with_added_vocabulary(

@@ -32,10 +32,11 @@ class Tokenizer {
   AddedVocabulary added_vocabulary;
   std::unique_ptr<Normalizer> normalizer;
   std::unique_ptr<PreTokenizer> pre_tokenizer;
-  Model model;
+  std::unique_ptr<Model> model;
   PostProcessor post_processor;
   Decoder decoder;
 
   AddedVocabulary with_added_vocabulary(
       AddedVocabularyConfig added_vocabulary_config);
+  std::vector<Token> do_tokenize(std::vector<Split> splits);
 };

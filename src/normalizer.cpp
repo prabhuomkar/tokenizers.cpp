@@ -38,10 +38,6 @@ NORMALIZER get_normalizer(std::string type) {
   return UNKNOWN_NORMALIZER;
 }
 
-std::wstring Normalizer::normalize(std::wstring normalized) const {
-  return L"";
-}
-
 std::unique_ptr<Normalizer> with_normalizer(
     simdjson::ondemand::object normalizer_params) {
   simdjson::ondemand::value val;
