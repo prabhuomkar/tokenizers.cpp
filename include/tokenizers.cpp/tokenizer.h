@@ -37,6 +37,6 @@ class Tokenizer {
 
   AddedVocabulary with_added_vocabulary(
       AddedVocabularyConfig added_vocabulary_config);
-  std::vector<Split> do_tokenize(std::vector<Split> splits);
-  Encoding into_encoding(std::vector<Split> splits);
+  Encoding do_tokenize(std::vector<Split> splits, std::optional<int> word_idx,
+                       int type_id);
 };

@@ -67,13 +67,7 @@ Encoding Tokenizer::encode(std::wstring sequence) {
   if (pre_tokenizer != nullptr) {
     splits = pre_tokenizer->pre_tokenize(sequence);
   }
-  splits = do_tokenize(splits);
-  for (Split split : splits) {
-    std::cout << split.normalized << " (" << split.offsets.first << ","
-              << split.offsets.second << ") " << split.tokens.size()
-              << std::endl;
-  }
-  return into_encoding(splits);
+  return do_tokenize(splits, std::nullopt, 0);
 }
 
 std::string Tokenizer::decode(std::vector<int> ids, bool skip_special_tokens) {
@@ -89,16 +83,30 @@ int Tokenizer::add_special_tokens(std::vector<AddedToken> tokens) {
                                              normalizer.get());
 }
 
-std::vector<Split> Tokenizer::do_tokenize(std::vector<Split> splits) {
+Encoding into_encoding(std::vector<Split> splits, std::optional<int> word_idx,
+                       int type_id) {
+  Encoding encoding;
+  for (int idx = 0; idx < splits.size(); idx++) {
+    Split split = splits[idx];
+    for (Token token : split.tokens) {
+      encoding.ids.push_back(token.id);
+      encoding.tokens.push_back(token.value);
+      encoding.offsets.push_back({token.offsets.first + split.offsets.first,
+                                  token.offsets.first + split.offsets.second});
+      encoding.words.push_back(word_idx.has_value() ? word_idx.value() : idx);
+      encoding.type_ids.push_back(type_id);
+    }
+  }
+  return encoding;
+}
+
+Encoding Tokenizer::do_tokenize(std::vector<Split> splits,
+                                std::optional<int> word_idx, int type_id) {
   for (Split &split : splits) {
     std::vector<Token> split_tokens = model->tokenize(split.normalized);
     split.tokens = split_tokens;
   }
-  return splits;
-}
-
-Encoding Tokenizer::into_encoding(std::vector<Split> splits) {
-  return Encoding();
+  return into_encoding(splits, word_idx, type_id);
 }
 
 AddedVocabulary Tokenizer::with_added_vocabulary(
