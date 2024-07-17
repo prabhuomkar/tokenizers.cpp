@@ -32,7 +32,7 @@ class Tokenizer {
   std::unique_ptr<Normalizer> normalizer;
   std::unique_ptr<PreTokenizer> pre_tokenizer;
   std::unique_ptr<Model> model;
-  PostProcessor post_processor;
+  std::unique_ptr<PostProcessor> post_processor;
   Decoder decoder;
 
   AddedVocabulary with_added_vocabulary(
