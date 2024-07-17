@@ -2,6 +2,6 @@
 
 int main() {
   auto tokenizer = Tokenizer("../../data/bert-base-uncased");
-  tokenizer.encode("A single sequence");
+  auto result = tokenizer.encode(L"A single sequence");
   return 0;
 }

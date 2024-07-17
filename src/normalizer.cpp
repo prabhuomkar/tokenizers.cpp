@@ -175,7 +175,6 @@ bool is_chinese_char(wchar_t c) {
 }
 
 std::wstring BertNormalizer::do_clean_text(std::wstring normalized) const {
-  std::cout << "cleaning text" << std::endl;
   std::wstring result;
   for (wchar_t c : normalized) {
     if (c != 0 && c != 0xFFFD && !is_control(c)) {

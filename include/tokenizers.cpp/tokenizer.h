@@ -21,8 +21,7 @@ class Tokenizer {
  public:
   explicit Tokenizer(std::string path);
 
-  Encoding encode(std::string sequence, bool is_pretokenized = false,
-                  bool add_special_tokens = true);
+  Encoding encode(std::wstring sequence);
   std::string decode(std::vector<int> ids, bool skip_special_tokens = true);
   int add_tokens(std::vector<AddedToken> tokens);
   int add_special_tokens(std::vector<AddedToken> tokens);
@@ -38,5 +37,6 @@ class Tokenizer {
 
   AddedVocabulary with_added_vocabulary(
       AddedVocabularyConfig added_vocabulary_config);
-  std::vector<Token> do_tokenize(std::vector<Split> splits);
+  std::vector<Split> do_tokenize(std::vector<Split> splits);
+  Encoding into_encoding(std::vector<Split> splits);
 };

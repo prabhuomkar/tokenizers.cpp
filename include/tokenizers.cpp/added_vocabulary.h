@@ -1,7 +1,6 @@
 // Copyright 2024 Omkar Prabhu
 #pragma once
 
-#include <memory>
 #include <optional>
 #include <string>
 #include <tuple>
@@ -35,11 +34,10 @@ class AddedVocabulary {
   std::vector<AddedToken> added_tokens;
   AddedVocabulary();
   explicit AddedVocabulary(std::vector<AddedToken> added_tokens);
-  int add_tokens(std::vector<AddedToken> tokens, std::unique_ptr<Model> model,
-                 std::unique_ptr<Normalizer> normalizer);
-  int add_special_tokens(std::vector<AddedToken> tokens,
-                         std::unique_ptr<Model> model,
-                         std::unique_ptr<Normalizer> normalizer);
+  int add_tokens(std::vector<AddedToken> tokens, Model* model,
+                 Normalizer* normalizer);
+  int add_special_tokens(std::vector<AddedToken> tokens, Model* model,
+                         Normalizer* normalizer);
 
  private:
   std::unordered_map<std::string, int> added_tokens_map;
@@ -49,8 +47,7 @@ class AddedVocabulary {
   std::pair<std::vector<std::string>, std::vector<int>>
       split_non_normalized_trie;
   std::pair<std::vector<std::string>, std::vector<int>> split_normalized_trie;
-  void refresh_added_tokens(std::unique_ptr<Model> model,
-                            std::unique_ptr<Normalizer> normalizer);
+  void refresh_added_tokens(Model* model, Normalizer* normalizer);
   std::vector<std::pair<
       std::string,
       std::optional<std::tuple<int, std::string, std::pair<int, int>>>>>

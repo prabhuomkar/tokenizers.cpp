@@ -65,7 +65,6 @@ std::vector<Split> split(std::vector<Split> splits,
     int offset = 0;
     std::vector<int> matches = find_matches(split.normalized, split_fn);
     for (int match : matches) {
-      std::cout << match << std::endl;
       if (split.normalized.substr(offset, match - offset).size() != 0) {
         new_splits.push_back(
             Split(split.normalized.substr(offset, match - offset),
@@ -88,10 +87,6 @@ std::vector<Split> split(std::vector<Split> splits,
           {offset + split.offsets.first,
            split.normalized.length() + split.offsets.first}));
     }
-  }
-  for (auto split : new_splits) {
-    std::cout << split.normalized << "(" << split.offsets.first << ","
-              << split.offsets.second << ")" << std::endl;
   }
   return new_splits;
 }

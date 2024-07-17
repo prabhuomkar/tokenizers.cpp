@@ -17,7 +17,6 @@
 #include "tokenizers.cpp/utils.h"
 
 Tokenizer::Tokenizer(std::string path) {
-  // load json from file tokenizer.json
   simdjson::ondemand::parser parser;
   simdjson::padded_string tokenizer_json_str =
       simdjson::padded_string::load(path + "/tokenizer.json");
@@ -32,8 +31,6 @@ Tokenizer::Tokenizer(std::string path) {
         with_added_vocabulary(AddedVocabularyConfig(added_tokens_params));
   }
 
-  // initialize the components of the tokenizer e.g. normalizer, pre_tokenizer
-  // model, decoder, post_processor
   if (!tokenizer_json["normalizer"].is_null()) {
     simdjson::ondemand::object normalizer_params =
         tokenizer_json["normalizer"].value();
@@ -62,12 +59,21 @@ Tokenizer::Tokenizer(std::string path) {
   add_tokens(added_vocabulary.added_tokens);
 }
 
-Encoding Tokenizer::encode(std::string sequence, bool is_pretokenized,
-                           bool add_special_tokens) {
-  // normalize
-  // pretokenize
-  // tokenize using model
-  return Encoding();
+Encoding Tokenizer::encode(std::wstring sequence) {
+  std::vector<Split> splits;
+  if (normalizer != nullptr) {
+    sequence = normalizer->normalize(sequence);
+  }
+  if (pre_tokenizer != nullptr) {
+    splits = pre_tokenizer->pre_tokenize(sequence);
+  }
+  splits = do_tokenize(splits);
+  for (Split split : splits) {
+    std::cout << split.normalized << " (" << split.offsets.first << ","
+              << split.offsets.second << ") " << split.tokens.size()
+              << std::endl;
+  }
+  return into_encoding(splits);
 }
 
 std::string Tokenizer::decode(std::vector<int> ids, bool skip_special_tokens) {
@@ -75,22 +81,24 @@ std::string Tokenizer::decode(std::vector<int> ids, bool skip_special_tokens) {
 }
 
 int Tokenizer::add_tokens(std::vector<AddedToken> tokens) {
-  return added_vocabulary.add_tokens(tokens, std::move(model),
-                                     std::move(normalizer));
+  return added_vocabulary.add_tokens(tokens, model.get(), normalizer.get());
 }
 
 int Tokenizer::add_special_tokens(std::vector<AddedToken> tokens) {
-  return added_vocabulary.add_special_tokens(tokens, std::move(model),
-                                             std::move(normalizer));
+  return added_vocabulary.add_special_tokens(tokens, model.get(),
+                                             normalizer.get());
 }
 
-std::vector<Token> Tokenizer::do_tokenize(std::vector<Split> splits) {
-  std::vector<Token> tokens;
-  for (Split split : splits) {
+std::vector<Split> Tokenizer::do_tokenize(std::vector<Split> splits) {
+  for (Split &split : splits) {
     std::vector<Token> split_tokens = model->tokenize(split.normalized);
-    tokens.insert(tokens.end(), split_tokens.begin(), split_tokens.end());
+    split.tokens = split_tokens;
   }
-  return tokens;
+  return splits;
+}
+
+Encoding Tokenizer::into_encoding(std::vector<Split> splits) {
+  return Encoding();
 }
 
 AddedVocabulary Tokenizer::with_added_vocabulary(

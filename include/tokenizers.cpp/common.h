@@ -29,6 +29,7 @@ class Split {
  public:
   std::string normalized;
   std::pair<int, int> offsets;
+  std::vector<Token> tokens;
   Split();
   Split(std::string normalized, std::pair<int, int> offsets);
 };
