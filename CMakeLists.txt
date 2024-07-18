@@ -34,13 +34,4 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/ DESTINATION include)
 add_subdirectory(third_party/googletest)
 
 enable_testing()
-
-file(GLOB TEST_SOURCES "src/*_test.cpp")
-
-add_executable(tokenizers.cpp_tests ${TEST_SOURCES})
-
-target_link_libraries(tokenizers.cpp_tests gtest gtest_main tokenizers.cpp ICU::uc ICU::i18n)
-
-include(GoogleTest)
-
-gtest_discover_tests(tokenizers.cpp_tests)
+add_subdirectory(tests)
