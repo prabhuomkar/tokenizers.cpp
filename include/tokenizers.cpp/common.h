@@ -15,6 +15,12 @@ class Encoding {
   std::vector<std::pair<int, int>> offsets;
   std::vector<int> special_tokens_mask;
   std::vector<int> attention_mask;
+  Encoding();
+  Encoding(std::vector<int> ids, std::vector<int> type_ids,
+           std::vector<std::string> tokens, std::vector<int> words,
+           std::vector<std::pair<int, int>> offsets,
+           std::vector<int> special_tokens_mask,
+           std::vector<int> attention_mask);
 };
 
 class Token {
