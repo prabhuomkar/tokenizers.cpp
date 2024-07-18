@@ -44,5 +44,13 @@ int main() {
     }
   }
   std::cout << "]" << std::endl;
+  std::cout << "attention mask: " << "[";
+  for (int i = 0; i < result.attention_mask.size(); i++) {
+    std::cout << result.attention_mask[i];
+    if (i != result.attention_mask.size() - 1) {
+      std::cout << ", ";
+    }
+  }
+  std::cout << "]" << std::endl;
   return 0;
 }

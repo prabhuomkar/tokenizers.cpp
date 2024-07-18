@@ -23,7 +23,16 @@ Tokenizer::Tokenizer(std::string path) {
   simdjson::ondemand::document tokenizer_json =
       parser.iterate(tokenizer_json_str);
 
-  // set truncation, padding, added_tokens
+  if (!tokenizer_json["truncation"].is_null()) {
+    simdjson::ondemand::object truncation_params =
+        tokenizer_json["truncation"].get_object();
+    truncation = with_truncation(truncation_params);
+  }
+  if (!tokenizer_json["padding"].is_null()) {
+    simdjson::ondemand::object padding_params =
+        tokenizer_json["padding"].get_object();
+    padding = with_padding(padding_params);
+  }
   if (!tokenizer_json["added_tokens"].is_null()) {
     simdjson::ondemand::array added_tokens_params =
         tokenizer_json["added_tokens"].get_array();
@@ -59,7 +68,7 @@ Tokenizer::Tokenizer(std::string path) {
   add_tokens(added_vocabulary.added_tokens);
 }
 
-Encoding Tokenizer::encode(std::wstring sequence) {
+Encoding Tokenizer::encode(std::wstring sequence, bool add_special_tokens) {
   std::vector<Split> splits;
   if (normalizer != nullptr) {
     sequence = normalizer->normalize(sequence);
@@ -67,7 +76,8 @@ Encoding Tokenizer::encode(std::wstring sequence) {
   if (pre_tokenizer != nullptr) {
     splits = pre_tokenizer->pre_tokenize(sequence);
   }
-  return do_tokenize(splits, std::nullopt, 0);
+  Encoding encoding = do_tokenize(splits, std::nullopt, 0);
+  return do_post_process(encoding, add_special_tokens);
 }
 
 std::string Tokenizer::decode(std::vector<int> ids, bool skip_special_tokens) {
@@ -95,6 +105,8 @@ Encoding into_encoding(std::vector<Split> splits, std::optional<int> word_idx,
                                   token.offsets.first + split.offsets.second});
       encoding.words.push_back(word_idx.has_value() ? word_idx.value() : idx);
       encoding.type_ids.push_back(type_id);
+      encoding.special_tokens_mask.push_back(0);
+      encoding.attention_mask.push_back(1);
     }
   }
   return encoding;
@@ -107,6 +119,20 @@ Encoding Tokenizer::do_tokenize(std::vector<Split> splits,
     split.tokens = split_tokens;
   }
   return into_encoding(splits, word_idx, type_id);
+}
+
+Encoding Tokenizer::do_post_process(Encoding encoding,
+                                    bool add_special_tokens) {
+  if (truncation != nullptr) {
+    std::cout << "TODO(omkar): Add truncation encodings" << std::endl;
+  }
+  if (post_processor != nullptr) {
+    encoding = post_processor->process(encoding, add_special_tokens);
+  }
+  if (padding != nullptr) {
+    std::cout << "TODO(omkar): Add truncation encodings" << std::endl;
+  }
+  return encoding;
 }
 
 AddedVocabulary Tokenizer::with_added_vocabulary(

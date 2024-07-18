@@ -21,13 +21,15 @@ class Tokenizer {
  public:
   explicit Tokenizer(std::string path);
 
-  Encoding encode(std::wstring sequence);
+  Encoding encode(std::wstring sequence, bool add_special_tokens = true);
   std::string decode(std::vector<int> ids, bool skip_special_tokens = true);
   int add_tokens(std::vector<AddedToken> tokens);
   int add_special_tokens(std::vector<AddedToken> tokens);
 
  private:
   std::string version;
+  std::unique_ptr<Truncation> truncation;
+  std::unique_ptr<Padding> padding;
   AddedVocabulary added_vocabulary;
   std::unique_ptr<Normalizer> normalizer;
   std::unique_ptr<PreTokenizer> pre_tokenizer;
@@ -39,4 +41,5 @@ class Tokenizer {
       AddedVocabularyConfig added_vocabulary_config);
   Encoding do_tokenize(std::vector<Split> splits, std::optional<int> word_idx,
                        int type_id);
+  Encoding do_post_process(Encoding encoding, bool add_special_tokens);
 };

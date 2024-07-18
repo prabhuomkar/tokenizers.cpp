@@ -4,6 +4,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "simdjson.h"
@@ -24,6 +25,7 @@ class SpecialToken {
   std::string id;
   std::vector<int> ids;
   std::vector<std::string> tokens;
+  SpecialToken();
   SpecialToken(std::string id, std::vector<int> ids,
                std::vector<std::string> tokens);
 };
@@ -38,8 +40,8 @@ class Piece {
 class PostProcessor {
  public:
   virtual ~PostProcessor() = default;
-  virtual Encoding post_process(Encoding encoding,
-                                bool add_special_tokens) const = 0;
+  virtual Encoding process(Encoding encoding,
+                           bool add_special_tokens) const = 0;
 };
 
 std::unique_ptr<PostProcessor> with_post_processor(
@@ -47,14 +49,13 @@ std::unique_ptr<PostProcessor> with_post_processor(
 
 class TemplateProcessing : public PostProcessor {
  public:
-  TemplateProcessing(std::vector<std::unordered_map<std::string, Piece>> single,
-                     std::vector<std::unordered_map<std::string, Piece>> pair,
+  TemplateProcessing(std::vector<std::pair<std::string, Piece>> single,
+                     std::vector<std::pair<std::string, Piece>> pair,
                      std::vector<SpecialToken> special_tokens);
-  Encoding post_process(Encoding encoding,
-                        bool add_special_tokens) const override;
+  Encoding process(Encoding encoding, bool add_special_tokens) const override;
 
  private:
-  std::vector<std::unordered_map<std::string, Piece>> single;
-  std::vector<std::unordered_map<std::string, Piece>> pair;
+  std::vector<std::pair<std::string, Piece>> single;
+  std::vector<std::pair<std::string, Piece>> pair;
   std::vector<SpecialToken> special_tokens;
 };
