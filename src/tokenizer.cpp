@@ -124,13 +124,13 @@ Encoding Tokenizer::do_tokenize(std::vector<Split> splits,
 Encoding Tokenizer::do_post_process(Encoding encoding,
                                     bool add_special_tokens) {
   if (truncation != nullptr) {
-    std::cout << "TODO(omkar): Add truncation encodings" << std::endl;
+    encoding = truncation->truncate_encoding(encoding);
   }
   if (post_processor != nullptr) {
     encoding = post_processor->process(encoding, add_special_tokens);
   }
   if (padding != nullptr) {
-    std::cout << "TODO(omkar): Add truncation encodings" << std::endl;
+    encoding = padding->pad_encoding(encoding);
   }
   return encoding;
 }
