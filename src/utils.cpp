@@ -242,7 +242,7 @@ std::unique_ptr<Padding> with_padding(
                       ? ""
                       : static_cast<std::string_view>(val.get_string()));
   val = padding_params["strategy"].value();
-  int fixed_size;
+  int fixed_size = -1;
   std::string strategy;
   if (val.type() != simdjson::ondemand::json_type::null) {
     if (val.type() == simdjson::ondemand::json_type::object) {

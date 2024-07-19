@@ -14,7 +14,7 @@ std::unique_ptr<PostProcessor> get_post_processor_from_string(
   return with_post_processor(post_processor_params);
 }
 
-void assert_encoding(Encoding expected, Encoding got) {
+void assert_post_processor_encoding(Encoding expected, Encoding got) {
   EXPECT_EQ(expected.ids, got.ids);
   EXPECT_EQ(expected.offsets, got.offsets);
   EXPECT_EQ(expected.tokens, got.tokens);
@@ -45,7 +45,7 @@ TEST(TemplateProcessingTest, AddSpecialTokens) {
                     {{0, 0}, {0, 5}, {6, 11}, {0, 0}}, {1, 0, 0, 1},
                     {1, 1, 1, 1});
   Encoding got = post_processor->process(input_encoding, true);
-  assert_encoding(expected, got);
+  assert_post_processor_encoding(expected, got);
 }
 
 TEST(TemplateProcessingTest, WithoutSpecialTokens) {
@@ -67,5 +67,5 @@ TEST(TemplateProcessingTest, WithoutSpecialTokens) {
   Encoding expected({12, 14}, {0, 0}, {"hello", "world"}, {0, 0},
                     {{0, 5}, {6, 11}}, {0, 0}, {1, 1});
   Encoding got = post_processor->process(input_encoding, false);
-  assert_encoding(expected, got);
+  assert_post_processor_encoding(expected, got);
 }
