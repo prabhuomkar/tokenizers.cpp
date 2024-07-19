@@ -2,8 +2,10 @@
 #include "tokenizers.cpp/decoder.h"
 
 #include <iostream>
+#include <memory>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "simdjson.h"
 
@@ -22,9 +24,8 @@ DECODER get_decoder(std::string type) {
   return UNKNOWN_DECODER;
 }
 
-Decoder::Decoder() {}
-
-Decoder with_decoder(simdjson::ondemand::object decoder_params) {
+std::unique_ptr<Decoder> with_decoder(
+    simdjson::ondemand::object decoder_params) {
   simdjson::ondemand::value val;
   std::string type = std::string(
       static_cast<std::string_view>(decoder_params["type"].get_string()));
@@ -38,12 +39,17 @@ Decoder with_decoder(simdjson::ondemand::object decoder_params) {
     bool cleanup = val.type() == simdjson::ondemand::json_type::null
                        ? false
                        : static_cast<bool>(val.get_bool());
-    return WordPieceDecoder(prefix, cleanup);
+    return std::make_unique<WordPieceDecoder>(
+        WordPieceDecoder(prefix, cleanup));
   }
-  return Decoder();
+  return nullptr;
 }
 
 WordPieceDecoder::WordPieceDecoder(std::string prefix, bool cleanup) {
   std::cout << "Initialized Decoder: WordPiece" << std::endl;
   std::cout << "params: " << prefix << " " << cleanup << std::endl;
+}
+std::vector<std::string> WordPieceDecoder::decode_chain(
+    std::vector<std::string> tokens) const {
+  return {};
 }

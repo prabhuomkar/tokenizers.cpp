@@ -1,7 +1,9 @@
 // Copyright 2024 Omkar Prabhu
 #pragma once
 
+#include <memory>
 #include <string>
+#include <vector>
 
 #include "simdjson.h"
 
@@ -18,12 +20,17 @@ DECODER get_decoder(std::string type);
 
 class Decoder {
  public:
-  Decoder();
+  virtual ~Decoder() = default;
+  virtual std::vector<std::string> decode_chain(
+      std::vector<std::string> tokens) const = 0;
 };
 
-Decoder with_decoder(simdjson::ondemand::object decoder_params);
+std::unique_ptr<Decoder> with_decoder(
+    simdjson::ondemand::object decoder_params);
 
 class WordPieceDecoder : public Decoder {
  public:
   explicit WordPieceDecoder(std::string prefix = "##", bool cleanup = true);
+  std::vector<std::string> decode_chain(
+      std::vector<std::string> tokens) const override;
 };
