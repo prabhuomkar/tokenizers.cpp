@@ -35,3 +35,5 @@ add_subdirectory(third_party/googletest)
 
 enable_testing()
 add_subdirectory(tests)
+
+add_subdirectory(examples)

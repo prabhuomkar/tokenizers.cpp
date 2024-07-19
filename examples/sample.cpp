@@ -1,7 +1,9 @@
+#include <string>
+
 #include "tokenizers.cpp/tokenizer.h"
 
-int main() {
-  auto tokenizer = Tokenizer("../../data/hf-internal-testing/llama-tokenizer");
+int main(int argc, char* argv[]) {
+  auto tokenizer = Tokenizer(std::string(argv[1]));
   auto result = tokenizer.encode(L"A single sequence");
   std::cout << "ids: " << "[";
   for (int i = 0; i < result.ids.size(); i++) {
