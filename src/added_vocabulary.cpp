@@ -36,6 +36,18 @@ AddedVocabulary::AddedVocabulary(std::vector<AddedToken> added_tokens)
   std::cout << std::endl;
 }
 
+bool AddedVocabulary::is_special_token(std::string token) {
+  return special_tokens_set.count(token) > 0;
+}
+
+std::optional<std::string> AddedVocabulary::id_to_token(int id) {
+  auto it = added_tokens_map_r.find(id);
+  if (it != added_tokens_map_r.end()) {
+    return (it->second).content;
+  }
+  return std::nullopt;
+}
+
 int AddedVocabulary::add_tokens(std::vector<AddedToken> tokens, Model* model,
                                 Normalizer* normalizer) {
   for (auto token : tokens) {

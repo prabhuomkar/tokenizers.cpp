@@ -45,11 +45,52 @@ std::unique_ptr<Decoder> with_decoder(
   return nullptr;
 }
 
-WordPieceDecoder::WordPieceDecoder(std::string prefix, bool cleanup) {
+WordPieceDecoder::WordPieceDecoder(std::string prefix, bool cleanup)
+    : prefix(prefix), cleanup(cleanup) {
   std::cout << "Initialized Decoder: WordPiece" << std::endl;
   std::cout << "params: " << prefix << " " << cleanup << std::endl;
 }
+
+std::string replace(std::string input, std::string from, std::string to) {
+  int start = 0;
+  while ((start = input.find(from, start)) != std::string::npos) {
+    input.replace(start, from.length(), to);
+    start += to.length();
+  }
+  return input;
+}
+
+std::string cleanup_token(std::string dirty_input) {
+  dirty_input = replace(dirty_input, " .", ".");
+  dirty_input = replace(dirty_input, " ?", "?");
+  dirty_input = replace(dirty_input, " !", "!");
+  dirty_input = replace(dirty_input, " ,", ",");
+  dirty_input = replace(dirty_input, " ' ", "'");
+  dirty_input = replace(dirty_input, " n't", "n't");
+  dirty_input = replace(dirty_input, " 'm", "'m");
+  dirty_input = replace(dirty_input, " do not", " don't");
+  dirty_input = replace(dirty_input, " 's", "'s");
+  dirty_input = replace(dirty_input, " 've", "'ve");
+  dirty_input = replace(dirty_input, " 're", "'re");
+  return dirty_input;
+}
+
 std::vector<std::string> WordPieceDecoder::decode_chain(
     std::vector<std::string> tokens) const {
-  return {};
+  std::vector<std::string> result;
+  for (int i = 0; i < tokens.size(); i++) {
+    std::string token = tokens[i];
+    if (i != 0) {
+      if (token.find(prefix) == 0) {
+        token.replace(0, prefix.length(), "");
+      } else {
+        token = " " + token;
+      }
+    }
+    if (cleanup) {
+      token = cleanup_token(token);
+    }
+    result.push_back(token);
+  }
+  return result;
 }

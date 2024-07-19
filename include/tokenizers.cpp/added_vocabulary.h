@@ -38,6 +38,8 @@ class AddedVocabulary {
                  Normalizer* normalizer);
   int add_special_tokens(std::vector<AddedToken> tokens, Model* model,
                          Normalizer* normalizer);
+  bool is_special_token(std::string token);
+  std::optional<std::string> id_to_token(int id);
 
  private:
   std::unordered_map<std::string, int> added_tokens_map;

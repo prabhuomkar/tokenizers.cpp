@@ -100,13 +100,25 @@ std::unique_ptr<Model> with_model(simdjson::ondemand::object model_params) {
   return nullptr;
 }
 
-Model::Model(std::unordered_map<std::string, int> vocab) : vocab(vocab) {}
+Model::Model(std::unordered_map<std::string, int> vocab) : vocab(vocab) {
+  for (auto pair : vocab) {
+    vocab_r[pair.second] = pair.first;
+  }
+}
 
 int Model::get_vocab_size() { return vocab.size(); }
 
 std::optional<int> Model::token_to_id(std::string token) {
   auto it = vocab.find(token);
   if (it != vocab.end()) {
+    return it->second;
+  }
+  return std::nullopt;
+}
+
+std::optional<std::string> Model::id_to_token(int id) {
+  auto it = vocab_r.find(id);
+  if (it != vocab_r.end()) {
     return it->second;
   }
   return std::nullopt;

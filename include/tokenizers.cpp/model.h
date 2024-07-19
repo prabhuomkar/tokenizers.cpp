@@ -23,12 +23,14 @@ MODEL get_model(std::string type);
 class Model {
  public:
   std::unordered_map<std::string, int> vocab;
+  std::unordered_map<int, std::string> vocab_r;
 
   virtual ~Model() = default;
   virtual std::vector<Token> tokenize(std::string sequence) const = 0;
   explicit Model(std::unordered_map<std::string, int> vocab);
   int get_vocab_size();
   std::optional<int> token_to_id(std::string token);
+  std::optional<std::string> id_to_token(int id);
 };
 
 std::unique_ptr<Model> with_model(simdjson::ondemand::object model_params);

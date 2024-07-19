@@ -2,6 +2,7 @@
 #include "tokenizers.cpp/tokenizer.h"
 
 #include <memory>
+#include <numeric>
 #include <optional>
 #include <string>
 #include <vector>
@@ -80,7 +81,21 @@ Encoding Tokenizer::encode(std::wstring sequence, bool add_special_tokens) {
 }
 
 std::string Tokenizer::decode(std::vector<int> ids, bool skip_special_tokens) {
-  return "";
+  std::vector<std::string> tokens;
+  for (int id : ids) {
+    std::string token = "";
+    std::optional<std::string> av_token = added_vocabulary->id_to_token(id);
+    if (!av_token.has_value()) {
+      token = model->id_to_token(id).value();
+    } else {
+      token = av_token.value();
+    }
+    if (!skip_special_tokens || !added_vocabulary->is_special_token(token)) {
+      tokens.push_back(token);
+    }
+  }
+  tokens = decoder->decode_chain(tokens);
+  return std::accumulate(tokens.begin(), tokens.end(), std::string{});
 }
 
 int Tokenizer::add_tokens(std::vector<AddedToken> tokens) {

@@ -3,6 +3,8 @@
 
 #include <gtest/gtest.h>
 
+#include <vector>
+
 #include "simdjson.h"
 
 std::unique_ptr<Model> get_model_from_string(std::string json) {

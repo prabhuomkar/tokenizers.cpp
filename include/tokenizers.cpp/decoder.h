@@ -33,4 +33,8 @@ class WordPieceDecoder : public Decoder {
   explicit WordPieceDecoder(std::string prefix = "##", bool cleanup = true);
   std::vector<std::string> decode_chain(
       std::vector<std::string> tokens) const override;
+
+ private:
+  std::string prefix;
+  bool cleanup;
 };
