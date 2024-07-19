@@ -1,6 +1,7 @@
 // Copyright 2024 Omkar Prabhu
 #pragma once
 
+#include <memory>
 #include <optional>
 #include <string>
 #include <tuple>
@@ -32,7 +33,6 @@ class AddedToken {
 class AddedVocabulary {
  public:
   std::vector<AddedToken> added_tokens;
-  AddedVocabulary();
   explicit AddedVocabulary(std::vector<AddedToken> added_tokens);
   int add_tokens(std::vector<AddedToken> tokens, Model* model,
                  Normalizer* normalizer);
@@ -55,8 +55,5 @@ class AddedVocabulary {
                std::pair<std::vector<std::string>, std::vector<int>> split_re);
 };
 
-class AddedVocabularyConfig {
- public:
-  std::vector<AddedToken> added_tokens;
-  explicit AddedVocabularyConfig(simdjson::ondemand::array added_tokens_params);
-};
+std::unique_ptr<AddedVocabulary> with_added_vocabulary(
+    simdjson::ondemand::array added_tokens_params);

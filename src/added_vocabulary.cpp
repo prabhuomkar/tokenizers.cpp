@@ -2,6 +2,7 @@
 #include "tokenizers.cpp/added_vocabulary.h"
 
 #include <algorithm>
+#include <memory>
 #include <optional>
 #include <string>
 #include <tuple>
@@ -21,8 +22,6 @@ AddedToken::AddedToken(int id, std::string content, bool single_word,
       rstrip(rstrip),
       normalized(normalized),
       special(special) {}
-
-AddedVocabulary::AddedVocabulary() {}
 
 AddedVocabulary::AddedVocabulary(std::vector<AddedToken> added_tokens)
     : added_tokens(added_tokens) {
@@ -164,9 +163,9 @@ int AddedVocabulary::add_special_tokens(std::vector<AddedToken> tokens,
   return add_tokens(tokens, model, normalizer);
 }
 
-AddedVocabularyConfig::AddedVocabularyConfig(
+std::unique_ptr<AddedVocabulary> with_added_vocabulary(
     simdjson::ondemand::array added_tokens_params) {
-  added_tokens = {};
+  std::vector<AddedToken> added_tokens;
   for (simdjson::ondemand::value val : added_tokens_params) {
     simdjson::ondemand::object added_token_param = val.get_object();
     AddedToken added_token;
@@ -191,4 +190,5 @@ AddedVocabularyConfig::AddedVocabularyConfig(
     }
     added_tokens.push_back(added_token);
   }
+  return std::make_unique<AddedVocabulary>(AddedVocabulary(added_tokens));
 }

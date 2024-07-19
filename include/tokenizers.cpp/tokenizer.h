@@ -30,15 +30,13 @@ class Tokenizer {
   std::string version;
   std::unique_ptr<Truncation> truncation;
   std::unique_ptr<Padding> padding;
-  AddedVocabulary added_vocabulary;
+  std::unique_ptr<AddedVocabulary> added_vocabulary;
   std::unique_ptr<Normalizer> normalizer;
   std::unique_ptr<PreTokenizer> pre_tokenizer;
   std::unique_ptr<Model> model;
   std::unique_ptr<PostProcessor> post_processor;
   Decoder decoder;
 
-  AddedVocabulary with_added_vocabulary(
-      AddedVocabularyConfig added_vocabulary_config);
   Encoding do_tokenize(std::vector<Split> splits, std::optional<int> word_idx,
                        int type_id);
   Encoding do_post_process(Encoding encoding, bool add_special_tokens);

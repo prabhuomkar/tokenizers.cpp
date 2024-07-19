@@ -36,8 +36,7 @@ Tokenizer::Tokenizer(std::string path) {
   if (!tokenizer_json["added_tokens"].is_null()) {
     simdjson::ondemand::array added_tokens_params =
         tokenizer_json["added_tokens"].get_array();
-    added_vocabulary =
-        with_added_vocabulary(AddedVocabularyConfig(added_tokens_params));
+    added_vocabulary = with_added_vocabulary(added_tokens_params);
   }
 
   if (!tokenizer_json["normalizer"].is_null()) {
@@ -65,7 +64,7 @@ Tokenizer::Tokenizer(std::string path) {
     post_processor = with_post_processor(post_processor_params);
   }
 
-  add_tokens(added_vocabulary.added_tokens);
+  add_tokens(added_vocabulary->added_tokens);
 }
 
 Encoding Tokenizer::encode(std::wstring sequence, bool add_special_tokens) {
@@ -85,12 +84,12 @@ std::string Tokenizer::decode(std::vector<int> ids, bool skip_special_tokens) {
 }
 
 int Tokenizer::add_tokens(std::vector<AddedToken> tokens) {
-  return added_vocabulary.add_tokens(tokens, model.get(), normalizer.get());
+  return added_vocabulary->add_tokens(tokens, model.get(), normalizer.get());
 }
 
 int Tokenizer::add_special_tokens(std::vector<AddedToken> tokens) {
-  return added_vocabulary.add_special_tokens(tokens, model.get(),
-                                             normalizer.get());
+  return added_vocabulary->add_special_tokens(tokens, model.get(),
+                                              normalizer.get());
 }
 
 Encoding into_encoding(std::vector<Split> splits, std::optional<int> word_idx,
@@ -133,9 +132,4 @@ Encoding Tokenizer::do_post_process(Encoding encoding,
     encoding = padding->pad_encoding(encoding);
   }
   return encoding;
-}
-
-AddedVocabulary Tokenizer::with_added_vocabulary(
-    AddedVocabularyConfig added_vocabulary_config) {
-  return AddedVocabulary(added_vocabulary_config.added_tokens);
 }
