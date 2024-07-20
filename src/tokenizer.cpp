@@ -17,10 +17,15 @@
 #include "tokenizers.cpp/pre_tokenizer.h"
 #include "tokenizers.cpp/utils.h"
 
-Tokenizer::Tokenizer(std::string path) {
+Tokenizer::Tokenizer(std::string path, std::string config) {
   simdjson::ondemand::parser parser;
-  simdjson::padded_string tokenizer_json_str =
-      simdjson::padded_string::load(path + "/tokenizer.json");
+  simdjson::padded_string tokenizer_json_str;
+  if (path.length() != 0) {
+    tokenizer_json_str =
+        simdjson::padded_string::load(path + "/tokenizer.json");
+  } else {
+    tokenizer_json_str = simdjson::padded_string(config);
+  }
   simdjson::ondemand::document tokenizer_json =
       parser.iterate(tokenizer_json_str);
 

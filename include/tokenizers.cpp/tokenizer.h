@@ -19,7 +19,7 @@
 
 class Tokenizer {
  public:
-  explicit Tokenizer(std::string path);
+  explicit Tokenizer(std::string path = "", std::string config = "");
 
   Encoding encode(std::wstring sequence, bool add_special_tokens = true);
   std::string decode(std::vector<int> ids, bool skip_special_tokens = true);
