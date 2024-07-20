@@ -24,17 +24,7 @@ AddedToken::AddedToken(int id, std::string content, bool single_word,
       special(special) {}
 
 AddedVocabulary::AddedVocabulary(std::vector<AddedToken> added_tokens)
-    : added_tokens(added_tokens) {
-  std::cout << "Initialized AddedVocabulary" << std::endl;
-  std::cout << "added_tokens: ";
-  for (const auto& added_token : added_tokens) {
-    std::cout << "(" << added_token.id << "," << added_token.content << ","
-              << added_token.single_word << "," << added_token.lstrip << ","
-              << added_token.rstrip << "," << added_token.normalized << ","
-              << added_token.special << ") ";
-  }
-  std::cout << std::endl;
-}
+    : added_tokens(added_tokens) {}
 
 bool AddedVocabulary::is_special_token(std::string token) {
   return special_tokens_set.count(token) > 0;

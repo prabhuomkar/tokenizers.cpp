@@ -1,58 +1,63 @@
+// Copyright 2024 Omkar Prabhu
 #include <string>
+#include <utility>
+#include <variant>
 
+#include "tokenizers.cpp/common.h"
 #include "tokenizers.cpp/tokenizer.h"
+
+using var_type = std::variant<int, std::string, std::pair<int, int>>;
+
+void print_result(std::vector<var_type> elems) {
+  std::cout << "[";
+  for (int i = 0; i < elems.size(); i++) {
+    auto elem = elems[i];
+    std::visit(
+        [](auto arg) {
+          if constexpr (std::is_same_v<decltype(arg), int>) {
+            std::cout << arg;
+          } else if constexpr (std::is_same_v<decltype(arg), std::string>) {
+            std::cout << arg;
+          } else if constexpr (std::is_same_v<decltype(arg),
+                                              std::pair<int, int>>) {
+            std::cout << "(" << arg.first << ", " << arg.second << ")";
+          }
+        },
+        elem);
+    if (i != elems.size() - 1) {
+      std::cout << ", ";
+    }
+  }
+  std::cout << "]" << std::endl;
+}
 
 int main(int argc, char* argv[]) {
   auto tokenizer = Tokenizer(std::string(argv[1]));
-  auto result = tokenizer.encode(L"A single sequence");
-  std::cout << "ids: " << "[";
-  for (int i = 0; i < result.ids.size(); i++) {
-    std::cout << result.ids[i];
-    if (i != result.ids.size() - 1) {
-      std::cout << ", ";
-    }
-  }
-  std::cout << "]" << std::endl;
-  std::cout << "type_ids: " << "[";
-  for (int i = 0; i < result.type_ids.size(); i++) {
-    std::cout << result.type_ids[i];
-    if (i != result.type_ids.size() - 1) {
-      std::cout << ", ";
-    }
-  }
-  std::cout << "]" << std::endl;
-  std::cout << "tokens: " << "[";
-  for (int i = 0; i < result.tokens.size(); i++) {
-    std::cout << result.tokens[i];
-    if (i != result.tokens.size() - 1) {
-      std::cout << ", ";
-    }
-  }
-  std::cout << "]" << std::endl;
-  std::cout << "words: " << "[";
-  for (int i = 0; i < result.words.size(); i++) {
-    std::cout << result.words[i];
-    if (i != result.words.size() - 1) {
-      std::cout << ", ";
-    }
-  }
-  std::cout << "]" << std::endl;
-  std::cout << "offsets: " << "[";
-  for (int i = 0; i < result.offsets.size(); i++) {
-    std::cout << "(" << result.offsets[i].first << ","
-              << result.offsets[i].second << ")";
-    if (i != result.offsets.size() - 1) {
-      std::cout << ", ";
-    }
-  }
-  std::cout << "]" << std::endl;
-  std::cout << "attention mask: " << "[";
-  for (int i = 0; i < result.attention_mask.size(); i++) {
-    std::cout << result.attention_mask[i];
-    if (i != result.attention_mask.size() - 1) {
-      std::cout << ", ";
-    }
-  }
-  std::cout << "]" << std::endl;
+  std::wstring input = L"A single sequence";
+  auto result = tokenizer.encode(input);
+  std::cout << "Encoding: " << convert_to_string(input) << std::endl;
+  std::cout << "ids: ";
+  print_result(std::vector<var_type>(result.ids.begin(), result.ids.end()));
+  std::cout << "type_ids: ";
+  print_result(
+      std::vector<var_type>(result.type_ids.begin(), result.type_ids.end()));
+  std::cout << "tokens: ";
+  print_result(
+      std::vector<var_type>(result.tokens.begin(), result.tokens.end()));
+  std::cout << "words: ";
+  print_result(std::vector<var_type>(result.words.begin(), result.words.end()));
+  std::cout << "offsets: ";
+  print_result(
+      std::vector<var_type>(result.offsets.begin(), result.offsets.end()));
+  std::cout << "attention_mask: ";
+  print_result(std::vector<var_type>(result.attention_mask.begin(),
+                                     result.attention_mask.end()));
+
+  std::cout << "---------------------------------------------" << std::endl;
+  std::string decoded_result = tokenizer.decode(result.ids);
+
+  std::cout << "Decoding: ";
+  print_result(std::vector<var_type>(result.ids.begin(), result.ids.end()));
+  std::cout << "tokens: " << decoded_result << std::endl;
   return 0;
 }

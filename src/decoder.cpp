@@ -46,10 +46,7 @@ std::unique_ptr<Decoder> with_decoder(
 }
 
 WordPieceDecoder::WordPieceDecoder(std::string prefix, bool cleanup)
-    : prefix(prefix), cleanup(cleanup) {
-  std::cout << "Initialized Decoder: WordPiece" << std::endl;
-  std::cout << "params: " << prefix << " " << cleanup << std::endl;
-}
+    : prefix(prefix), cleanup(cleanup) {}
 
 std::string replace(std::string input, std::string from, std::string to) {
   int start = 0;
