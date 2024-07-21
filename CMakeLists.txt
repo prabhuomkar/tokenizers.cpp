@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.27)
+cmake_minimum_required(VERSION 3.22.1)
 
 project(tokenizers.cpp VERSION 1.0.0)
 
