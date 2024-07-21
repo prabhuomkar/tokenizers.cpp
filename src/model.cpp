@@ -148,13 +148,14 @@ std::vector<Token> WordPiece::tokenize(std::string sequence) const {
     int end = sequence.length();
     std::optional<Token> cur_sequence_token = std::nullopt;
     while (start < end) {
-      std::string sub_sequence = sequence.substr(start, end);
+      std::string sub_sequence = sequence.substr(start, end - start);
       if (start > 0) {
         sub_sequence = continuing_subword_prefix + sub_sequence;
       }
       if (vocab.count(sub_sequence) != 0) {
         auto it = vocab.find(sub_sequence);
         if (it != vocab.end()) {
+          std::cout << "inserting: " << sub_sequence << std::endl;
           cur_sequence_token = Token(it->second, sub_sequence, {start, end});
         }
         break;

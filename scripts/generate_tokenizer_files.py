@@ -1,10 +1,10 @@
 import sys
 from transformers import AutoTokenizer
-from tokenizers import Tokenizer
 
 
 NAME = sys.argv[1]
 
+input = '我喜欢学习中文。Açúcar é doce.'
 tokenizer = AutoTokenizer.from_pretrained(NAME)
 tokenizer.save_pretrained(f"data/{NAME}")
-print(tokenizer.encode_plus('我喜欢学习中文。Açúcar é doce.', return_offsets_mapping=True))
+print(tokenizer.encode_plus(input, return_offsets_mapping=True))
