@@ -185,8 +185,6 @@ std::wstring BertNormalizer::do_clean_text(std::wstring normalized) const {
       }
     }
   }
-  std::transform(result.begin(), result.end(), result.begin(),
-                 [](wchar_t c) { return is_whitespace(c) ? ' ' : c; });
   return result;
 }
 
@@ -200,10 +198,18 @@ std::wstring BertNormalizer::do_handle_chinese_chars(
       new_chars.push_back({c, 0});
     }
   }
-  // TODO(omkar): calculate offsets
-  std::wstring result;
-  for (auto ci : new_chars) {
-    result.push_back(ci.first);
+  std::wstring result = normalized;
+  int i = 0;
+  for (const auto& change : new_chars) {
+    if (change.second > 0) {
+      result.insert(i, 1, change.first);
+    } else if (change.second < 0) {
+      i += change.second;
+      result.insert(i, 1, change.first);
+    } else {
+      result[i] = change.first;
+    }
+    i++;
   }
   return result;
 }

@@ -1,4 +1,7 @@
 // Copyright 2024 Omkar Prabhu
+#include <unicode/uchar.h>
+#include <unicode/unistr.h>
+
 #include <string>
 #include <utility>
 #include <variant>

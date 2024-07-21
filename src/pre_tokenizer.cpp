@@ -1,6 +1,9 @@
 // Copyright 2024 Omkar Prabhu
 #include "tokenizers.cpp/pre_tokenizer.h"
 
+#include <unicode/uchar.h>
+#include <unicode/unistr.h>
+
 #include <functional>
 #include <iostream>
 #include <memory>
@@ -42,15 +45,17 @@ std::unique_ptr<PreTokenizer> with_pre_tokenizer(
   return nullptr;
 }
 
-bool is_whitespace(char c) { return isspace(static_cast<unsigned char>(c)); }
+bool is_whitespace(UChar32 c) { return u_isspace(c); }
 
-bool is_bert_punc(char c) { return ispunct(static_cast<unsigned char>(c)); }
+bool is_bert_punc(UChar32 c) {
+  return u_ispunct(c) || ispunct(static_cast<unsigned char>(c));
+}
 
-std::vector<int> find_matches(std::string input,
-                              std::function<bool(char)> match_fn) {
+std::vector<int> find_matches(icu::UnicodeString input,
+                              std::function<bool(UChar32)> match_fn) {
   std::vector<int> matches;
-  for (int i = 0; i < input.size(); i++) {
-    if (match_fn(input[i])) {
+  for (int i = 0; i < input.length(); ++i) {
+    if (match_fn(input.char32At(i))) {
       matches.push_back(i);
     }
   }
@@ -58,34 +63,45 @@ std::vector<int> find_matches(std::string input,
 }
 
 std::vector<Split> split(std::vector<Split> splits,
-                         std::function<bool(char)> split_fn,
+                         std::function<bool(UChar32)> split_fn,
                          SPLIT_DELIMITER_BEHAVIOR pattern) {
   std::vector<Split> new_splits;
   for (Split split : splits) {
     int offset = 0;
-    std::vector<int> matches = find_matches(split.normalized, split_fn);
+    icu::UnicodeString split_unciode_str =
+        icu::UnicodeString::fromUTF8(split.normalized);
+    std::vector<int> matches = find_matches(split_unciode_str, split_fn);
     for (int match : matches) {
-      if (split.normalized.substr(offset, match - offset).size() != 0) {
+      if (split_unciode_str.tempSubStringBetween(offset, match).length() != 0) {
+        std::string split_normalized;
+        split_unciode_str.tempSubStringBetween(offset, match)
+            .toUTF8String(split_normalized);
         new_splits.push_back(
-            Split(split.normalized.substr(offset, match - offset),
+            Split(split_normalized,
                   {offset + split.offsets.first, match + split.offsets.first}));
       }
       switch (pattern) {
         case REMOVED:
           break;
         case ISOLATED:
+          std::string split_normalized;
+          split_unciode_str.tempSubStringBetween(match, match + 1)
+              .toUTF8String(split_normalized);
           new_splits.push_back(Split(
-              split.normalized.substr(match, 1),
+              split_normalized,
               {match + split.offsets.first, match + split.offsets.first + 1}));
           break;
       }
       offset = match + 1;
     }
-    if (offset <= split.normalized.length() - 1) {
-      new_splits.push_back(Split(
-          split.normalized.substr(offset, split.normalized.length() - offset),
-          {offset + split.offsets.first,
-           split.normalized.length() + split.offsets.first}));
+    if (offset <= split_unciode_str.length() - 1) {
+      std::string split_normalized;
+      split_unciode_str.tempSubStringBetween(offset, split_unciode_str.length())
+          .toUTF8String(split_normalized);
+      new_splits.push_back(
+          Split(split_normalized,
+                {offset + split.offsets.first,
+                 split_unciode_str.length() + split.offsets.first}));
     }
   }
   return new_splits;

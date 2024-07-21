@@ -1,5 +1,6 @@
 import sys
 from transformers import AutoTokenizer
+from tokenizers import Tokenizer
 
 
 NAME = sys.argv[1]

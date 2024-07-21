@@ -39,9 +39,9 @@ TEST(BertPreTokenizerTest, Simple) {
   std::vector<Split> got =
       pre_tokenizer->pre_tokenize(L"Hey friend!     How are you?!?");
   validate_splits(expected, got);
-  expected = {Split("野", {0, 3}),        Split("口", {4, 7}),
-              Split("里", {8, 11}),       Split("佳", {12, 15}),
-              Split("Noguchi", {16, 23}), Split("Rika", {24, 28})};
+  expected = {Split("野", {0, 1}),       Split("口", {2, 3}),
+              Split("里", {4, 5}),       Split("佳", {6, 7}),
+              Split("Noguchi", {8, 15}), Split("Rika", {16, 20})};
   got = pre_tokenizer->pre_tokenize(L"野 口 里 佳 Noguchi Rika");
   validate_splits(expected, got);
 }
