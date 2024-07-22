@@ -1,6 +1,9 @@
 // Copyright 2024 Omkar Prabhu
 #include "tokenizers.cpp/tokenizer.h"
 
+#include <unicode/uchar.h>
+#include <unicode/unistr.h>
+
 #include <memory>
 #include <numeric>
 #include <optional>
@@ -120,8 +123,8 @@ Encoding into_encoding(std::vector<Split> splits, std::optional<int> word_idx,
     for (Token token : split.tokens) {
       encoding.ids.push_back(token.id);
       encoding.tokens.push_back(token.value);
-      encoding.offsets.push_back({token.offsets.first + split.offsets.first,
-                                  token.offsets.first + split.offsets.second});
+      encoding.offsets.push_back({split.offsets.first + token.offsets.first,
+                                  split.offsets.first + token.offsets.second});
       encoding.words.push_back(word_idx.has_value() ? word_idx.value() : idx);
       encoding.type_ids.push_back(type_id);
       encoding.special_tokens_mask.push_back(0);
