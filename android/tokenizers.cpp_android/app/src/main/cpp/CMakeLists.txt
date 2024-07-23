@@ -21,7 +21,7 @@ set(TOKENIZERS.CPP_SOURCES
         ${TOKENIZERS.CPP_DIR}/third_party/simdjson/src/simdjson.cpp
 )
 
-set(ICU_ROOT_PATH ${CMAKE_SOURCE_DIR}/../../../../../../../icu4c/prebuilt)
+set(ICU_ROOT_PATH ${TOKENIZERS.CPP_DIR}/scripts/icu4c/prebuilt)
 set(ICU_INCLUDE_PATH "${ICU_ROOT_PATH}/include")
 
 include_directories(${ICU_INCLUDE_PATH})
@@ -41,11 +41,11 @@ endif()
 
 
 add_library(tokenizers.cpp SHARED ${TOKENIZERS.CPP_SOURCES})
-target_link_libraries(tokenizers.cpp ${ICU_LIB_PATH}/libicuuc_floris.a
-        ${ICU_LIB_PATH}/libicui18n_floris.a
-        ${ICU_LIB_PATH}/libicudata_floris.a)
+ target_link_libraries(tokenizers.cpp ${ICU_LIB_PATH}/libicuuc.a
+        ${ICU_LIB_PATH}/libicui18n.a
+        ${ICU_LIB_PATH}/libicudata.a)
 
 add_library(${CMAKE_PROJECT_NAME} SHARED tokenizers.cpp_jni.cpp)
-target_link_libraries(${CMAKE_PROJECT_NAME} tokenizers.cpp android log ${ICU_LIB_PATH}/libicuuc_floris.a
-        ${ICU_LIB_PATH}/libicui18n_floris.a
-        ${ICU_LIB_PATH}/libicudata_floris.a)
+target_link_libraries(${CMAKE_PROJECT_NAME} tokenizers.cpp android log ${ICU_LIB_PATH}/libicuuc.a
+        ${ICU_LIB_PATH}/libicui18n.a
+        ${ICU_LIB_PATH}/libicudata.a)
