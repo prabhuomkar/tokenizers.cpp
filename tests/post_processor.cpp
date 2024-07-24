@@ -40,10 +40,10 @@ TEST(TemplateProcessingTest, AddSpecialTokens) {
   EXPECT_NE(post_processor, nullptr);
   Encoding input_encoding({12, 14}, {0, 0}, {"hello", "world"}, {0, 0},
                           {{0, 5}, {6, 11}}, {0, 0}, {1, 1});
-  Encoding expected({101, 12, 14, 102}, {0, 0, 0, 0},
-                    {"[CLS]", "hello", "world", "[SEP]"}, {0, 0, 0, 0},
-                    {{0, 0}, {0, 5}, {6, 11}, {0, 0}}, {1, 0, 0, 1},
-                    {1, 1, 1, 1});
+  Encoding expected(
+      {101, 12, 14, 102}, {0, 0, 0, 0}, {"[CLS]", "hello", "world", "[SEP]"},
+      {std::nullopt, 0, 0, std::nullopt}, {{0, 0}, {0, 5}, {6, 11}, {0, 0}},
+      {1, 0, 0, 1}, {1, 1, 1, 1});
   Encoding got = post_processor->process(input_encoding, true);
   assert_post_processor_encoding(expected, got);
 }

@@ -132,7 +132,8 @@ Encoding TemplateProcessing::process(Encoding encoding,
         new_encoding.tokens = special_token.tokens;
         new_encoding.type_ids =
             std::vector<int>(special_token.ids.size(), piece.second.type_id);
-        new_encoding.words = std::vector<int>(special_token.ids.size());
+        new_encoding.words = std::vector<std::optional<int>>(
+            special_token.ids.size(), std::nullopt);
         new_encoding.offsets =
             std::vector<std::pair<int, int>>(special_token.ids.size(), {0, 0});
         new_encoding.special_tokens_mask =
