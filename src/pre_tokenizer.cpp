@@ -1,5 +1,5 @@
 // Copyright 2024 Omkar Prabhu
-#include "tokenizers.cpp/pre_tokenizer.h"
+#include "tokenizers/pre_tokenizer.h"
 
 #include <unicode/uchar.h>
 #include <unicode/unistr.h>
@@ -12,7 +12,7 @@
 #include <vector>
 
 #include "simdjson.h"
-#include "tokenizers.cpp/common.h"
+#include "tokenizers/common.h"
 
 PRE_TOKENIZER get_pre_tokenizer(std::string type) {
   static const std::unordered_map<std::string, PRE_TOKENIZER> types = {

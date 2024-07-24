@@ -1,5 +1,5 @@
 // Copyright 2024 Omkar Prabhu
-#include "tokenizers.cpp/utils.h"
+#include "tokenizers/utils.h"
 
 #include <gtest/gtest.h>
 

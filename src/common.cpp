@@ -1,5 +1,5 @@
 // Copyright 2024 Omkar Prabhu
-#include "tokenizers.cpp/common.h"
+#include "tokenizers/common.h"
 
 #include <string>
 #include <utility>

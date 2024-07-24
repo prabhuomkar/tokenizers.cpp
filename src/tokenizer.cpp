@@ -1,5 +1,5 @@
 // Copyright 2024 Omkar Prabhu
-#include "tokenizers.cpp/tokenizer.h"
+#include "tokenizers/tokenizer.h"
 
 #include <unicode/uchar.h>
 #include <unicode/unistr.h>
@@ -11,14 +11,14 @@
 #include <vector>
 
 #include "simdjson.h"
-#include "tokenizers.cpp/added_vocabulary.h"
-#include "tokenizers.cpp/common.h"
-#include "tokenizers.cpp/decoder.h"
-#include "tokenizers.cpp/model.h"
-#include "tokenizers.cpp/normalizer.h"
-#include "tokenizers.cpp/post_processor.h"
-#include "tokenizers.cpp/pre_tokenizer.h"
-#include "tokenizers.cpp/utils.h"
+#include "tokenizers/added_vocabulary.h"
+#include "tokenizers/common.h"
+#include "tokenizers/decoder.h"
+#include "tokenizers/model.h"
+#include "tokenizers/normalizer.h"
+#include "tokenizers/post_processor.h"
+#include "tokenizers/pre_tokenizer.h"
+#include "tokenizers/utils.h"
 
 Tokenizer::Tokenizer(std::string path, std::string config) {
   simdjson::ondemand::parser parser;

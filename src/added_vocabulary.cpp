@@ -1,5 +1,5 @@
 // Copyright 2024 Omkar Prabhu
-#include "tokenizers.cpp/added_vocabulary.h"
+#include "tokenizers/added_vocabulary.h"
 
 #include <algorithm>
 #include <memory>
@@ -8,8 +8,8 @@
 #include <tuple>
 #include <vector>
 
-#include "tokenizers.cpp/model.h"
-#include "tokenizers.cpp/normalizer.h"
+#include "tokenizers/model.h"
+#include "tokenizers/normalizer.h"
 
 AddedToken::AddedToken() {}
 

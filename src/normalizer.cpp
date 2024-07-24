@@ -1,5 +1,5 @@
 // Copyright 2024 Omkar Prabhu
-#include "tokenizers.cpp/normalizer.h"
+#include "tokenizers/normalizer.h"
 
 #include <unicode/normlzr.h>
 #include <unicode/unistr.h>
@@ -14,7 +14,7 @@
 #include <vector>
 
 #include "simdjson.h"
-#include "tokenizers.cpp/common.h"
+#include "tokenizers/common.h"
 
 NORMALIZER get_normalizer(std::string type) {
   static const std::unordered_map<std::string, NORMALIZER> types = {

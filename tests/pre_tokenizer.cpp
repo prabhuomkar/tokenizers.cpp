@@ -1,5 +1,5 @@
 // Copyright 2024 Omkar Prabhu
-#include "tokenizers.cpp/pre_tokenizer.h"
+#include "tokenizers/pre_tokenizer.h"
 
 #include <gtest/gtest.h>
 
@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "simdjson.h"
-#include "tokenizers.cpp/common.h"
+#include "tokenizers/common.h"
 
 std::unique_ptr<PreTokenizer> get_pre_tokenizer_from_string(std::string json) {
   simdjson::ondemand::parser parser;

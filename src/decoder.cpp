@@ -1,5 +1,5 @@
 // Copyright 2024 Omkar Prabhu
-#include "tokenizers.cpp/decoder.h"
+#include "tokenizers/decoder.h"
 
 #include <iostream>
 #include <memory>

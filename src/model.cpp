@@ -1,5 +1,5 @@
 // Copyright 2024 Omkar Prabhu
-#include "tokenizers.cpp/model.h"
+#include "tokenizers/model.h"
 
 #include <iostream>
 #include <memory>
@@ -8,8 +8,8 @@
 #include <unordered_map>
 
 #include "simdjson.h"
-#include "tokenizers.cpp/common.h"
-#include "tokenizers.cpp/utils.h"
+#include "tokenizers/common.h"
+#include "tokenizers/utils.h"
 
 MODEL get_model(std::string type) {
   static const std::unordered_map<std::string, MODEL> types = {

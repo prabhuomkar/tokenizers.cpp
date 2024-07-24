@@ -6,8 +6,8 @@
 #include <utility>
 #include <variant>
 
-#include "tokenizers.cpp/common.h"
-#include "tokenizers.cpp/tokenizer.h"
+#include "tokenizers/common.h"
+#include "tokenizers/tokenizer.h"
 
 using var_type = std::variant<int, std::string, std::pair<int, int>>;
 

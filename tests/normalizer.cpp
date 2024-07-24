@@ -1,5 +1,5 @@
 // Copyright 2024 Omkar Prabhu
-#include "tokenizers.cpp/normalizer.h"
+#include "tokenizers/normalizer.h"
 
 #include <gtest/gtest.h>
 

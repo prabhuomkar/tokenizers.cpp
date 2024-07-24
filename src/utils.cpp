@@ -1,5 +1,5 @@
 // Copyright 2024 Omkar Prabhu
-#include "tokenizers.cpp/utils.h"
+#include "tokenizers/utils.h"
 
 #include <algorithm>
 #include <optional>
@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "simdjson.h"
-#include "tokenizers.cpp/common.h"
+#include "tokenizers/common.h"
 
 TRUNCATION_DIRECTION get_truncation_direction(std::string direction) {
   static const std::unordered_map<std::string, TRUNCATION_DIRECTION>
