@@ -37,7 +37,7 @@ class NormalizedString {
   explicit NormalizedString(std::wstring normalized);
   NormalizedString(std::wstring normalized,
                    std::vector<std::pair<int, int>> offsets);
-  void transform(int i, std::string op);
+  void transform(int i, std::string op, int n);
 };
 
 class Normalizer {

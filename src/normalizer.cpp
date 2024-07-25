@@ -141,14 +141,14 @@ std::unique_ptr<Normalizer> with_normalizer(
   return nullptr;
 }
 
-void NormalizedString::transform(int i, std::string op) {
+void NormalizedString::transform(int i, std::string op, int n) {
   int start = offset_ranges[i].first;
   int limit = offset_ranges[i].second;
   if (op == "erase") {
     offsets.erase(offsets.begin() + start, offsets.begin() + start + limit);
     offset_ranges.erase(offset_ranges.begin() + i,
                         offset_ranges.begin() + i + 1);
-  } else if (op == "add") {
+  } else if (op == "pad") {
     int start = offset_ranges[i].first;
     int limit = offset_ranges[i].second;
     std::pair<int, int> offset = offsets[start];
@@ -176,6 +176,24 @@ void NormalizedString::transform(int i, std::string op) {
     int start = offset_ranges[i].first;
     int limit = offset_ranges[i].second;
     offset_ranges.erase(offset_ranges.begin() + i);
+  } else if (op == "add" || op == "replace") {
+    int start = offset_ranges[i].first;
+    int limit = offset_ranges[i].second;
+    std::vector<std::pair<int, int>> new_offset_ranges = {{start, n}};
+    if (op == "add") {
+      new_offset_ranges.push_back({start + n, limit});
+    }
+    offset_ranges.erase(offset_ranges.begin() + i);
+    offset_ranges.insert(offset_ranges.begin() + i, new_offset_ranges.begin(),
+                         new_offset_ranges.end());
+    for (int j = i + (op == "add" ? 2 : 1); j < offset_ranges.size(); j++) {
+      offset_ranges[j].first =
+          offset_ranges[j - 1].first + offset_ranges[j - 1].second;
+    }
+    std::vector<std::pair<int, int>> new_offsets((op == "add" ? n : n - 1),
+                                                 {offsets[start]});
+    offsets.insert(offsets.begin() + start, new_offsets.begin(),
+                   new_offsets.end());
   }
 }
 
@@ -207,7 +225,7 @@ NormalizedString NFD::normalize(NormalizedString normalized) const {
   }
   int multi = 0;
   for (auto i : grow_ids) {
-    normalized.transform(i + multi, "grow");
+    normalized.transform(i + multi, "grow", 0);
     multi += 1;
   }
   normalized.normalized = result;
@@ -278,7 +296,7 @@ NormalizedString BertNormalizer::do_clean_text(
         result.push_back(c);
       }
     } else {
-      normalized.transform(i, "erase");
+      normalized.transform(i, "erase", 0);
     }
     i++;
   }
@@ -304,7 +322,7 @@ NormalizedString BertNormalizer::do_handle_chinese_chars(
   for (auto ti : transform_ids) {
     ti += multi;
     multi += 2;
-    normalized.transform(ti, "add");
+    normalized.transform(ti, "pad", 0);
   }
   std::wstring result = normalized.normalized;
   i = 0;
@@ -339,7 +357,7 @@ NormalizedString BertNormalizer::do_strip_accents(
   }
   int multi = 0;
   for (auto i : shrink_ids) {
-    nfd_normalized.transform(i + multi, "shrink");
+    nfd_normalized.transform(i + multi, "shrink", 0);
     multi -= 1;
   }
   nfd_normalized.normalized = result;
@@ -370,17 +388,8 @@ Prepend::Prepend(std::string prepend) : prepend(prepend) {}
 
 NormalizedString Prepend::normalize(NormalizedString normalized) const {
   int start = 0, end = 0;
-  std::wstring result, current_word;
-  while (end != std::wstring::npos) {
-    end = normalized.normalized.find(L" ", start);
-    if (end == std::wstring::npos) {
-      current_word = normalized.normalized.substr(start);
-    } else {
-      current_word = normalized.normalized.substr(start, end - start);
-    }
-    result += (convert_from_string(prepend) + current_word + L" ");
-    start = end + 1;
-  }
+  std::wstring result = convert_from_string(prepend) + normalized.normalized;
+  normalized.transform(0, "add", prepend.length());
   normalized.normalized = result;
   return normalized;
 }
@@ -390,8 +399,25 @@ Replace::Replace(std::string pattern, std::string content)
 
 NormalizedString Replace::normalize(NormalizedString normalized) const {
   std::wregex regex_pattern(convert_from_string(pattern));
-  std::wstring result = std::regex_replace(normalized.normalized, regex_pattern,
-                                           convert_from_string(content));
-  normalized.normalized = result;
+  std::vector<int> replace_ids;
+  std::wsregex_iterator it(normalized.normalized.begin(),
+                           normalized.normalized.end(), regex_pattern);
+  std::wsregex_iterator end;
+  std::wstring replace_content = convert_from_string(content);
+  while (it != end) {
+    std::wsmatch match = *it;
+    replace_ids.push_back(match.position());
+    normalized.normalized.erase(normalized.normalized.begin() +
+                                match.position());
+    normalized.normalized.insert(
+        normalized.normalized.begin() + match.position(),
+        replace_content.begin(), replace_content.end());
+    ++it;
+  }
+  int multi = 0;
+  for (auto i : replace_ids) {
+    normalized.transform(i + multi, "replace", content.length());
+    multi += replace_content.length();
+  }
   return normalized;
 }

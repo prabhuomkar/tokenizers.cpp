@@ -29,7 +29,8 @@ void print_result(std::vector<var_type> elems) {
               std::cout << "None";
             }
           } else if constexpr (std::is_same_v<decltype(arg), std::string>) {
-            std::cout << "'" << arg << "'";
+            std::cout << (arg == "'" ? "\"" : "'") << arg
+                      << (arg == "'" ? "\"" : "'");
           } else if constexpr (std::is_same_v<decltype(arg),
                                               std::pair<int, int>>) {
             std::cout << "(" << arg.first << ", " << arg.second << ")";
@@ -46,7 +47,7 @@ void print_result(std::vector<var_type> elems) {
 int main(int argc, char* argv[]) {
   auto tokenizer = Tokenizer(std::string(argv[1]));
 
-  std::wstring input = L"我喜欢学习中文。\u007fAçúcar é doce.";
+  std::wstring input = L"J'aime les crêpes au chocolat pour le petit-déjeuner.";
 
   auto result = tokenizer.encode(input);
   std::cout << "Encoding: " << convert_to_string(input) << std::endl;

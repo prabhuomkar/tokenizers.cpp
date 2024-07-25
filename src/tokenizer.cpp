@@ -81,6 +81,7 @@ Encoding Tokenizer::encode(std::wstring sequence, bool add_special_tokens) {
   if (normalizer != nullptr) {
     normalized = normalizer->normalize(normalized);
   }
+  std::cout << convert_to_string(normalized.normalized) << std::endl;
   PreTokenizedString pre_tokenized(normalized);
   if (pre_tokenizer != nullptr) {
     pre_tokenized = pre_tokenizer->pre_tokenize(pre_tokenized);

@@ -24,7 +24,7 @@ TEST(SequenceNormalizerTest, Simple) {
   EXPECT_NE(normalizer, nullptr);
   auto normalized = normalizer->normalize(
       NormalizedString(L"Hello World!\tThis is a test.\n"));
-  EXPECT_EQ(L"▁Hello▁▁World!\tThis▁▁is▁▁a▁▁test.\n▁", normalized.normalized);
+  EXPECT_EQ(L"▁Hello▁World!\tThis▁is▁a▁test.\n", normalized.normalized);
 }
 
 TEST(BertNormalizerTest, CleanText) {
@@ -71,7 +71,7 @@ TEST(PrependNormalizerTest, Simple) {
       get_normalizer_from_string("{\"type\":\"Prepend\",\"prepend\":\"_\"}");
   EXPECT_NE(normalizer, nullptr);
   auto normalized = normalizer->normalize(NormalizedString(L"Hello World!"));
-  EXPECT_EQ(L"_Hello _World! ", normalized.normalized);
+  EXPECT_EQ(L"_Hello World!", normalized.normalized);
 }
 
 TEST(NFDNormalizerTest, Simple) {
