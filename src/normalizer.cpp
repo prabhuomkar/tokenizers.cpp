@@ -74,8 +74,6 @@ NormalizedString::NormalizedString(std::wstring normalized,
                                    std::vector<std::pair<int, int>> offsets)
     : normalized(normalized), offsets(offsets) {}
 
-std::wstring NormalizedString::get() { return normalized; }
-
 std::unique_ptr<Normalizer> with_normalizer(
     simdjson::ondemand::object normalizer_params) {
   simdjson::ondemand::value val;
@@ -143,7 +141,7 @@ std::unique_ptr<Normalizer> with_normalizer(
   return nullptr;
 }
 
-void NormalizedString::transform(int i, std::string op, int n) {
+void NormalizedString::transform(int i, std::string op) {
   int start = offset_ranges[i].first;
   int limit = offset_ranges[i].second;
   if (op == "erase") {
@@ -187,8 +185,8 @@ NormalizedString NFD::normalize(NormalizedString normalized) const {
   // TODO(omkar): Handle errors
   UErrorCode status = U_ZERO_ERROR;
   icu::UnicodeString unicode_normalized = icu::UnicodeString::fromUTF32(
-      reinterpret_cast<const UChar32*>(normalized.get().c_str()),
-      normalized.get().length());
+      reinterpret_cast<const UChar32*>(normalized.normalized.c_str()),
+      normalized.normalized.length());
   icu::Normalizer::normalize(unicode_normalized, UNORM_NFD, 0,
                              unicode_normalized, status);
   std::wstring result;
@@ -197,7 +195,7 @@ NormalizedString NFD::normalize(NormalizedString normalized) const {
                              unicode_normalized.countChar32(), status);
   int oi = 0, ni = 0;
   std::vector<int> grow_ids;
-  while (oi < normalized.get().length() && ni < result.length()) {
+  while (oi < normalized.normalized.length() && ni < result.length()) {
     if (normalized.normalized[oi] == result[ni]) {
       oi++;
       ni++;
@@ -209,7 +207,7 @@ NormalizedString NFD::normalize(NormalizedString normalized) const {
   }
   int multi = 0;
   for (auto i : grow_ids) {
-    normalized.transform(i + multi, "grow", 1);
+    normalized.transform(i + multi, "grow");
     multi += 1;
   }
   normalized.normalized = result;
@@ -272,7 +270,7 @@ NormalizedString BertNormalizer::do_clean_text(
     NormalizedString normalized) const {
   std::wstring result;
   int i = 0;
-  for (wchar_t c : normalized.get()) {
+  for (wchar_t c : normalized.normalized) {
     if (c != 0 && c != 0xFFFD && !is_control(c)) {
       if (is_whitespace(c)) {
         result.push_back(L' ');
@@ -280,7 +278,7 @@ NormalizedString BertNormalizer::do_clean_text(
         result.push_back(c);
       }
     } else {
-      normalized.transform(i, "erase", 0);
+      normalized.transform(i, "erase");
     }
     i++;
   }
@@ -293,7 +291,7 @@ NormalizedString BertNormalizer::do_handle_chinese_chars(
   std::vector<std::pair<wchar_t, int>> new_chars;
   std::vector<int> transform_ids;
   int i = 0;
-  for (wchar_t c : normalized.get()) {
+  for (wchar_t c : normalized.normalized) {
     if (is_chinese_char(c)) {
       new_chars.insert(new_chars.end(), {{L' ', 0}, {c, 1}, {L' ', 1}});
       transform_ids.push_back(i);
@@ -306,9 +304,9 @@ NormalizedString BertNormalizer::do_handle_chinese_chars(
   for (auto ti : transform_ids) {
     ti += multi;
     multi += 2;
-    normalized.transform(ti, "add", 2);
+    normalized.transform(ti, "add");
   }
-  std::wstring result = normalized.get();
+  std::wstring result = normalized.normalized;
   i = 0;
   for (const auto& change : new_chars) {
     if (change.second > 0) {
@@ -341,7 +339,7 @@ NormalizedString BertNormalizer::do_strip_accents(
   }
   int multi = 0;
   for (auto i : shrink_ids) {
-    nfd_normalized.transform(i + multi, "shrink", 0);
+    nfd_normalized.transform(i + multi, "shrink");
     multi -= 1;
   }
   nfd_normalized.normalized = result;
@@ -350,7 +348,7 @@ NormalizedString BertNormalizer::do_strip_accents(
 
 NormalizedString BertNormalizer::do_lowercase(
     NormalizedString normalized) const {
-  std::wstring result = normalized.get();
+  std::wstring result = normalized.normalized;
   std::transform(result.begin(), result.end(), result.begin(), std::towlower);
   normalized.normalized = result;
   return normalized;
@@ -374,11 +372,11 @@ NormalizedString Prepend::normalize(NormalizedString normalized) const {
   int start = 0, end = 0;
   std::wstring result, current_word;
   while (end != std::wstring::npos) {
-    end = normalized.get().find(L" ", start);
+    end = normalized.normalized.find(L" ", start);
     if (end == std::wstring::npos) {
-      current_word = normalized.get().substr(start);
+      current_word = normalized.normalized.substr(start);
     } else {
-      current_word = normalized.get().substr(start, end - start);
+      current_word = normalized.normalized.substr(start, end - start);
     }
     result += (convert_from_string(prepend) + current_word + L" ");
     start = end + 1;
@@ -392,7 +390,7 @@ Replace::Replace(std::string pattern, std::string content)
 
 NormalizedString Replace::normalize(NormalizedString normalized) const {
   std::wregex regex_pattern(convert_from_string(pattern));
-  std::wstring result = std::regex_replace(normalized.get(), regex_pattern,
+  std::wstring result = std::regex_replace(normalized.normalized, regex_pattern,
                                            convert_from_string(content));
   normalized.normalized = result;
   return normalized;

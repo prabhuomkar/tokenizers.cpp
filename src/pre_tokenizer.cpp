@@ -37,8 +37,8 @@ PRE_TOKENIZER get_pre_tokenizer(std::string type) {
 
 PreTokenizedString::PreTokenizedString(NormalizedString normalized)
     : normalized(normalized) {
-  splits = {Split(convert_to_string(normalized.get()),
-                  {0, normalized.get().length()})};
+  splits = {Split(convert_to_string(normalized.normalized),
+                  {0, normalized.normalized.length()})};
 }
 
 std::unique_ptr<PreTokenizer> with_pre_tokenizer(

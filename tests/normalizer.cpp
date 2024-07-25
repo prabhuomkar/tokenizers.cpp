@@ -24,7 +24,7 @@ TEST(SequenceNormalizerTest, Simple) {
   EXPECT_NE(normalizer, nullptr);
   auto normalized = normalizer->normalize(
       NormalizedString(L"Hello World!\tThis is a test.\n"));
-  EXPECT_EQ(L"▁Hello▁▁World!\tThis▁▁is▁▁a▁▁test.\n▁", normalized.get());
+  EXPECT_EQ(L"▁Hello▁▁World!\tThis▁▁is▁▁a▁▁test.\n▁", normalized.normalized);
 }
 
 TEST(BertNormalizerTest, CleanText) {
@@ -34,7 +34,7 @@ TEST(BertNormalizerTest, CleanText) {
   EXPECT_NE(normalizer, nullptr);
   auto normalized = normalizer->normalize(
       NormalizedString(L"Hello World!\tThis is a test.\n"));
-  EXPECT_EQ(L"Hello World! This is a test. ", normalized.get());
+  EXPECT_EQ(L"Hello World! This is a test. ", normalized.normalized);
 }
 
 TEST(BertNormalizerTest, HandleChineseChars) {
@@ -43,7 +43,7 @@ TEST(BertNormalizerTest, HandleChineseChars) {
       "chars\":true,\"strip_accents\":null,\"lowercase\":false}");
   EXPECT_NE(normalizer, nullptr);
   auto normalized = normalizer->normalize(NormalizedString(L"Hello 世界!"));
-  EXPECT_EQ(L"Hello  世  界 !", normalized.get());
+  EXPECT_EQ(L"Hello  世  界 !", normalized.normalized);
 }
 
 TEST(BertNormalizerTest, StripAccents) {
@@ -53,7 +53,7 @@ TEST(BertNormalizerTest, StripAccents) {
   EXPECT_NE(normalizer, nullptr);
   auto normalized =
       normalizer->normalize(NormalizedString(L"Hélló Wórld! Thïs ïs á tést."));
-  EXPECT_EQ(L"Hello World! This is a test.", normalized.get());
+  EXPECT_EQ(L"Hello World! This is a test.", normalized.normalized);
 }
 
 TEST(BertNormalizerTest, Lowercase) {
@@ -63,7 +63,7 @@ TEST(BertNormalizerTest, Lowercase) {
   EXPECT_NE(normalizer, nullptr);
   auto normalized =
       normalizer->normalize(NormalizedString(L"HELLO WORLD! THIS IS A TEST!"));
-  EXPECT_EQ(L"hello world! this is a test!", normalized.get());
+  EXPECT_EQ(L"hello world! this is a test!", normalized.normalized);
 }
 
 TEST(PrependNormalizerTest, Simple) {
@@ -71,7 +71,7 @@ TEST(PrependNormalizerTest, Simple) {
       get_normalizer_from_string("{\"type\":\"Prepend\",\"prepend\":\"_\"}");
   EXPECT_NE(normalizer, nullptr);
   auto normalized = normalizer->normalize(NormalizedString(L"Hello World!"));
-  EXPECT_EQ(L"_Hello _World! ", normalized.get());
+  EXPECT_EQ(L"_Hello _World! ", normalized.normalized);
 }
 
 TEST(NFDNormalizerTest, Simple) {
@@ -79,7 +79,7 @@ TEST(NFDNormalizerTest, Simple) {
       get_normalizer_from_string("{\"type\":\"NFD\"}");
   EXPECT_NE(normalizer, nullptr);
   auto normalized = normalizer->normalize(NormalizedString(L"Héllo World!"));
-  EXPECT_EQ(L"Héllo World!", normalized.get());
+  EXPECT_EQ(L"Héllo World!", normalized.normalized);
 }
 
 TEST(ReplaceNormalizerTest, ReplaceContent) {
@@ -88,5 +88,5 @@ TEST(ReplaceNormalizerTest, ReplaceContent) {
       "\"},\"content\":\"▁\"}");
   EXPECT_NE(normalizer, nullptr);
   auto normalized = normalizer->normalize(NormalizedString(L"Hello World!"));
-  EXPECT_EQ(L"Hello▁World!", normalized.get());
+  EXPECT_EQ(L"Hello▁World!", normalized.normalized);
 }

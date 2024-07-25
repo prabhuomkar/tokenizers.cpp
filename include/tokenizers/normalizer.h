@@ -34,11 +34,10 @@ class NormalizedString {
   std::wstring normalized;
   std::vector<std::pair<int, int>> offsets;
   std::vector<std::pair<int, int>> offset_ranges;
-  std::wstring get();
   explicit NormalizedString(std::wstring normalized);
   NormalizedString(std::wstring normalized,
                    std::vector<std::pair<int, int>> offsets);
-  void transform(int i, std::string op, int n);
+  void transform(int i, std::string op);
 };
 
 class Normalizer {
