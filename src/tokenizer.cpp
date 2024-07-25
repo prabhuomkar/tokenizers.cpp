@@ -121,17 +121,21 @@ Encoding into_encoding(PreTokenizedString pre_tokenized,
   Encoding encoding;
   for (int idx = 0; idx < pre_tokenized.splits.size(); idx++) {
     Split split = pre_tokenized.splits[idx];
+    std::pair<int, int> transformed_split_offset = {
+        pre_tokenized.normalized
+            .offsets[pre_tokenized.normalized.offset_ranges[split.offsets.first]
+                         .first]
+            .first,
+        pre_tokenized.normalized
+            .offsets[pre_tokenized.normalized.offset_ranges[split.offsets.first]
+                         .first]
+            .second};
     for (Token token : split.tokens) {
       encoding.ids.push_back(token.id);
       encoding.tokens.push_back(token.value);
-      auto idx =
-          pre_tokenized.normalized.offset_ranges[split.offsets.first].first;
-      std::cout << "(" << pre_tokenized.normalized.offsets[idx].first << ","
-                << pre_tokenized.normalized.offsets[idx].second << ") has "
-                << token.offsets.first << "," << token.offsets.second
-                << std::endl;
-      encoding.offsets.push_back({split.offsets.first + token.offsets.first,
-                                  split.offsets.first + token.offsets.second});
+      encoding.offsets.push_back(
+          {transformed_split_offset.first + token.offsets.first,
+           transformed_split_offset.first + token.offsets.second});
       encoding.words.push_back(word_idx.has_value() ? word_idx.value() : idx);
       encoding.type_ids.push_back(type_id);
       encoding.special_tokens_mask.push_back(0);

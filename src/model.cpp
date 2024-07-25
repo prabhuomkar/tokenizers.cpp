@@ -1,6 +1,9 @@
 // Copyright 2024 Omkar Prabhu
 #include "tokenizers/model.h"
 
+#include <unicode/uchar.h>
+#include <unicode/unistr.h>
+
 #include <iostream>
 #include <memory>
 #include <optional>
@@ -134,8 +137,9 @@ WordPiece::WordPiece(std::unordered_map<std::string, int> vocab,
 
 PreTokenizedString WordPiece::tokenize(PreTokenizedString pre_tokenized) const {
   for (auto &split : pre_tokenized.splits) {
-    std::string sequence = split.normalized;
-    int char_len = sequence.length();
+    icu::UnicodeString unicode_sequence =
+        icu::UnicodeString::fromUTF8(split.normalized);
+    int char_len = unicode_sequence.length();
     if (char_len > max_input_chars_per_word) {
       auto it = vocab.find(unk_token);
       if (it == vocab.end()) {
@@ -148,11 +152,14 @@ PreTokenizedString WordPiece::tokenize(PreTokenizedString pre_tokenized) const {
     bool is_bad = false;
     int start = 0;
     std::vector<Token> sub_tokens;
-    while (start < sequence.length()) {
-      int end = sequence.length();
+    while (start < unicode_sequence.length()) {
+      int end = unicode_sequence.length();
       std::optional<Token> cur_sequence_token = std::nullopt;
       while (start < end) {
-        std::string sub_sequence = sequence.substr(start, end - start);
+        std::string sub_sequence;
+        icu::UnicodeString unicode_sub_sequence =
+            unicode_sequence.tempSubString(start, end - start);
+        unicode_sub_sequence.toUTF8String(sub_sequence);
         if (start > 0) {
           sub_sequence = continuing_subword_prefix + sub_sequence;
         }

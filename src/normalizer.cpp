@@ -38,6 +38,19 @@ NORMALIZER get_normalizer(std::string type) {
   return UNKNOWN_NORMALIZER;
 }
 
+void debug(NormalizedString normalized) {
+  std::cout << normalized.offset_ranges.size() << std::endl;
+  for (auto ofr : normalized.offset_ranges) {
+    std::cout << "(" << ofr.first << "," << ofr.second << "), ";
+  }
+  std::cout << std::endl;
+  std::cout << normalized.offsets.size() << std::endl;
+  for (auto ofr : normalized.offsets) {
+    std::cout << "(" << ofr.first << "," << ofr.second << "), ";
+  }
+  std::cout << std::endl;
+}
+
 NormalizedString::NormalizedString(std::wstring normalized)
     : normalized(normalized) {
   icu::UnicodeString unicode_normalized = icu::UnicodeString::fromUTF32(
@@ -156,26 +169,15 @@ void NormalizedString::transform(int i, std::string op, int n) {
   } else if (op == "grow") {
     int start = offset_ranges[i].first;
     int limit = offset_ranges[i].second;
-    std::pair<int, int> offset = offsets[start];
-    std::vector<std::pair<int, int>> new_offsets(1, offset);
-    offsets.insert(offsets.begin() + start, new_offsets.begin(),
-                   new_offsets.end());
-    std::vector<std::pair<int, int>> new_offset_ranges = {
-        {start + limit + 1, 1}};
+    std::vector<std::pair<int, int>> new_offset_ranges = {{start, 1},
+                                                          {start + 1, 1}};
+    offset_ranges.erase(offset_ranges.begin() + i);
     offset_ranges.insert(offset_ranges.begin() + i, new_offset_ranges.begin(),
                          new_offset_ranges.end());
-    for (int j = i + 1; j < offset_ranges.size(); j++) {
-      offset_ranges[j].first =
-          offset_ranges[j - 1].first + offset_ranges[j - 1].second;
-    }
   } else if (op == "shrink") {
     int start = offset_ranges[i].first;
     int limit = offset_ranges[i].second;
-    offsets.erase(offsets.begin() + start, offsets.begin() + start + limit - 1);
     offset_ranges.erase(offset_ranges.begin() + i);
-    for (int j = i + 1; j < offset_ranges.size(); j++) {
-      offset_ranges[j].first = offset_ranges[j].first - (limit - 1);
-    }
   }
 }
 
@@ -194,15 +196,21 @@ NormalizedString NFD::normalize(NormalizedString normalized) const {
   unicode_normalized.toUTF32(reinterpret_cast<UChar32*>(&result[0]),
                              unicode_normalized.countChar32(), status);
   int oi = 0, ni = 0;
+  std::vector<int> grow_ids;
   while (oi < normalized.get().length() && ni < result.length()) {
     if (normalized.normalized[oi] == result[ni]) {
       oi++;
       ni++;
     } else {
-      normalized.transform(oi, "grow", 1);
+      grow_ids.push_back(oi);
       oi++;
       ni += 2;
     }
+  }
+  int multi = 0;
+  for (auto i : grow_ids) {
+    normalized.transform(i + multi, "grow", 1);
+    multi += 1;
   }
   normalized.normalized = result;
   return normalized;
@@ -322,13 +330,19 @@ NormalizedString BertNormalizer::do_strip_accents(
   auto nfd_normalized = NFD().normalize(normalized);
   std::wstring result;
   int i = 0;
+  std::vector<int> shrink_ids;
   for (wchar_t c : nfd_normalized.normalized) {
     if (u_charType(static_cast<UChar32>(c)) != U_NON_SPACING_MARK) {
       result.push_back(c);
     } else {
-      nfd_normalized.transform(i, "shrink", 0);
+      shrink_ids.push_back(i);
     }
     i++;
+  }
+  int multi = 0;
+  for (auto i : shrink_ids) {
+    nfd_normalized.transform(i + multi, "shrink", 0);
+    multi -= 1;
   }
   nfd_normalized.normalized = result;
   return nfd_normalized;
