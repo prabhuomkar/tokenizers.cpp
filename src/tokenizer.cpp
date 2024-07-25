@@ -77,14 +77,15 @@ Tokenizer::Tokenizer(std::string path, std::string config) {
 }
 
 Encoding Tokenizer::encode(std::wstring sequence, bool add_special_tokens) {
-  std::vector<Split> splits;
+  NormalizedString normalized(sequence);
   if (normalizer != nullptr) {
-    sequence = normalizer->normalize(sequence);
+    normalized = normalizer->normalize(normalized);
   }
+  PreTokenizedString pre_tokenized(normalized);
   if (pre_tokenizer != nullptr) {
-    splits = pre_tokenizer->pre_tokenize(sequence);
+    pre_tokenized = pre_tokenizer->pre_tokenize(pre_tokenized);
   }
-  Encoding encoding = do_tokenize(splits, std::nullopt, 0);
+  Encoding encoding = do_tokenize(pre_tokenized, std::nullopt, 0);
   return do_post_process(encoding, add_special_tokens);
 }
 
@@ -115,14 +116,20 @@ int Tokenizer::add_special_tokens(std::vector<AddedToken> tokens) {
                                               normalizer.get());
 }
 
-Encoding into_encoding(std::vector<Split> splits, std::optional<int> word_idx,
-                       int type_id) {
+Encoding into_encoding(PreTokenizedString pre_tokenized,
+                       std::optional<int> word_idx, int type_id) {
   Encoding encoding;
-  for (int idx = 0; idx < splits.size(); idx++) {
-    Split split = splits[idx];
+  for (int idx = 0; idx < pre_tokenized.splits.size(); idx++) {
+    Split split = pre_tokenized.splits[idx];
     for (Token token : split.tokens) {
       encoding.ids.push_back(token.id);
       encoding.tokens.push_back(token.value);
+      auto idx =
+          pre_tokenized.normalized.offset_ranges[split.offsets.first].first;
+      std::cout << "(" << pre_tokenized.normalized.offsets[idx].first << ","
+                << pre_tokenized.normalized.offsets[idx].second << ") has "
+                << token.offsets.first << "," << token.offsets.second
+                << std::endl;
       encoding.offsets.push_back({split.offsets.first + token.offsets.first,
                                   split.offsets.first + token.offsets.second});
       encoding.words.push_back(word_idx.has_value() ? word_idx.value() : idx);
@@ -134,13 +141,10 @@ Encoding into_encoding(std::vector<Split> splits, std::optional<int> word_idx,
   return encoding;
 }
 
-Encoding Tokenizer::do_tokenize(std::vector<Split> splits,
+Encoding Tokenizer::do_tokenize(PreTokenizedString pre_tokenized,
                                 std::optional<int> word_idx, int type_id) {
-  for (Split &split : splits) {
-    std::vector<Token> split_tokens = model->tokenize(split.normalized);
-    split.tokens = split_tokens;
-  }
-  return into_encoding(splits, word_idx, type_id);
+  pre_tokenized = model->tokenize(pre_tokenized);
+  return into_encoding(pre_tokenized, word_idx, type_id);
 }
 
 Encoding Tokenizer::do_post_process(Encoding encoding,

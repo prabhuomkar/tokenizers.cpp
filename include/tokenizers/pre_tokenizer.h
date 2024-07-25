@@ -7,6 +7,7 @@
 
 #include "simdjson.h"
 #include "tokenizers/common.h"
+#include "tokenizers/normalizer.h"
 
 enum PRE_TOKENIZER {
   BERT_PRE_TOKENIZER,
@@ -27,10 +28,18 @@ enum SPLIT_DELIMITER_BEHAVIOR { REMOVED, ISOLATED };
 PRE_TOKENIZER
 get_pre_tokenizer(std::string type);
 
+class PreTokenizedString {
+ public:
+  NormalizedString normalized;
+  std::vector<Split> splits;
+  explicit PreTokenizedString(NormalizedString normalized);
+};
+
 class PreTokenizer {
  public:
   virtual ~PreTokenizer() = default;
-  virtual std::vector<Split> pre_tokenize(std::wstring normalized) const = 0;
+  virtual PreTokenizedString pre_tokenize(
+      PreTokenizedString pre_tokenized) const = 0;
 };
 
 std::unique_ptr<PreTokenizer> with_pre_tokenizer(
@@ -39,5 +48,6 @@ std::unique_ptr<PreTokenizer> with_pre_tokenizer(
 class BertPreTokenizer : public PreTokenizer {
  public:
   BertPreTokenizer();
-  std::vector<Split> pre_tokenize(std::wstring normalized) const override;
+  PreTokenizedString pre_tokenize(
+      PreTokenizedString pre_tokenized) const override;
 };

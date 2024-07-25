@@ -1,9 +1,11 @@
 // Copyright 2024 Omkar Prabhu
 #pragma once
 
+#include <algorithm>
 #include <memory>
 #include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "simdjson.h"
@@ -27,10 +29,22 @@ enum NORMALIZER {
 
 NORMALIZER get_normalizer(std::string type);
 
+class NormalizedString {
+ public:
+  std::wstring normalized;
+  std::vector<std::pair<int, int>> offsets;
+  std::vector<std::pair<int, int>> offset_ranges;
+  std::wstring get();
+  explicit NormalizedString(std::wstring normalized);
+  NormalizedString(std::wstring normalized,
+                   std::vector<std::pair<int, int>> offsets);
+  void transform(int i, std::string op, int n);
+};
+
 class Normalizer {
  public:
   virtual ~Normalizer() = default;
-  virtual std::wstring normalize(std::wstring normalized) const = 0;
+  virtual NormalizedString normalize(NormalizedString normalized) const = 0;
 };
 
 std::unique_ptr<Normalizer> with_normalizer(
@@ -41,23 +55,23 @@ class BertNormalizer : public Normalizer {
   explicit BertNormalizer(bool clean_text = true,
                           bool handle_chinese_chars = true,
                           bool strip_accents = false, bool lowercase = true);
-  std::wstring normalize(std::wstring normalized) const override;
+  NormalizedString normalize(NormalizedString normalized) const override;
 
  private:
   bool clean_text;
   bool handle_chinese_chars;
   bool strip_accents;
   bool lowercase;
-  std::wstring do_clean_text(std::wstring normalized) const;
-  std::wstring do_handle_chinese_chars(std::wstring normalized) const;
-  std::wstring do_strip_accents(std::wstring normalized) const;
-  std::wstring do_lowercase(std::wstring normalized) const;
+  NormalizedString do_clean_text(NormalizedString normalized) const;
+  NormalizedString do_handle_chinese_chars(NormalizedString normalized) const;
+  NormalizedString do_strip_accents(NormalizedString normalized) const;
+  NormalizedString do_lowercase(NormalizedString normalized) const;
 };
 
 class Prepend : public Normalizer {
  public:
   explicit Prepend(std::string prepend);
-  std::wstring normalize(std::wstring normalized) const override;
+  NormalizedString normalize(NormalizedString normalized) const override;
 
  private:
   std::string prepend;
@@ -66,7 +80,7 @@ class Prepend : public Normalizer {
 class Replace : public Normalizer {
  public:
   explicit Replace(std::string pattern, std::string content);
-  std::wstring normalize(std::wstring normalized) const override;
+  NormalizedString normalize(NormalizedString normalized) const override;
 
  private:
   std::string pattern;
@@ -76,14 +90,14 @@ class Replace : public Normalizer {
 class NFD : public Normalizer {
  public:
   NFD();
-  std::wstring normalize(std::wstring normalized) const override;
+  NormalizedString normalize(NormalizedString normalized) const override;
 };
 
 class SequenceNormalizer : public Normalizer {
  public:
   explicit SequenceNormalizer(
       std::vector<std::unique_ptr<Normalizer>> normalizers);
-  std::wstring normalize(std::wstring normalized) const override;
+  NormalizedString normalize(NormalizedString normalized) const override;
 
  private:
   std::vector<std::unique_ptr<Normalizer>> normalizers;

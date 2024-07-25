@@ -37,7 +37,7 @@ class Tokenizer {
   std::unique_ptr<PostProcessor> post_processor;
   std::unique_ptr<Decoder> decoder;
 
-  Encoding do_tokenize(std::vector<Split> splits, std::optional<int> word_idx,
-                       int type_id);
+  Encoding do_tokenize(PreTokenizedString pre_tokenized,
+                       std::optional<int> word_idx, int type_id);
   Encoding do_post_process(Encoding encoding, bool add_special_tokens);
 };

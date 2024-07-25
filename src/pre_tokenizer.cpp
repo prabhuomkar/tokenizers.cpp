@@ -13,6 +13,7 @@
 
 #include "simdjson.h"
 #include "tokenizers/common.h"
+#include "tokenizers/normalizer.h"
 
 PRE_TOKENIZER get_pre_tokenizer(std::string type) {
   static const std::unordered_map<std::string, PRE_TOKENIZER> types = {
@@ -32,6 +33,12 @@ PRE_TOKENIZER get_pre_tokenizer(std::string type) {
     return it->second;
   }
   return UNKNOWN_PRE_TOKENIZER;
+}
+
+PreTokenizedString::PreTokenizedString(NormalizedString normalized)
+    : normalized(normalized) {
+  splits = {Split(convert_to_string(normalized.get()),
+                  {0, normalized.get().length()})};
 }
 
 std::unique_ptr<PreTokenizer> with_pre_tokenizer(
@@ -109,12 +116,11 @@ std::vector<Split> split(std::vector<Split> splits,
 
 BertPreTokenizer::BertPreTokenizer() {}
 
-std::vector<Split> BertPreTokenizer::pre_tokenize(
-    std::wstring normalized) const {
-  std::string pre_tokenized = convert_to_string(normalized);
-  std::vector<Split> splits = {
-      Split(pre_tokenized, {0, pre_tokenized.length()})};
-  splits = split(splits, is_whitespace, SPLIT_DELIMITER_BEHAVIOR::REMOVED);
-  splits = split(splits, is_bert_punc, SPLIT_DELIMITER_BEHAVIOR::ISOLATED);
-  return splits;
+PreTokenizedString BertPreTokenizer::pre_tokenize(
+    PreTokenizedString pre_tokenized) const {
+  pre_tokenized.splits = split(pre_tokenized.splits, is_whitespace,
+                               SPLIT_DELIMITER_BEHAVIOR::REMOVED);
+  pre_tokenized.splits = split(pre_tokenized.splits, is_bert_punc,
+                               SPLIT_DELIMITER_BEHAVIOR::ISOLATED);
+  return pre_tokenized;
 }

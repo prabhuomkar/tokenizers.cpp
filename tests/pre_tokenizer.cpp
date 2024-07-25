@@ -36,12 +36,13 @@ TEST(BertPreTokenizerTest, Simple) {
       Split("Hey", {0, 3}),   Split("friend", {4, 10}), Split("!", {10, 11}),
       Split("How", {16, 19}), Split("are", {20, 23}),   Split("you", {24, 27}),
       Split("?", {27, 28}),   Split("!", {28, 29}),     Split("?", {29, 30})};
-  std::vector<Split> got =
-      pre_tokenizer->pre_tokenize(L"Hey friend!     How are you?!?");
-  validate_splits(expected, got);
+  auto got = pre_tokenizer->pre_tokenize(
+      PreTokenizedString(NormalizedString(L"Hey friend!     How are you?!?")));
+  validate_splits(expected, got.splits);
   expected = {Split("野", {0, 1}),       Split("口", {2, 3}),
               Split("里", {4, 5}),       Split("佳", {6, 7}),
               Split("Noguchi", {8, 15}), Split("Rika", {16, 20})};
-  got = pre_tokenizer->pre_tokenize(L"野 口 里 佳 Noguchi Rika");
-  validate_splits(expected, got);
+  got = pre_tokenizer->pre_tokenize(
+      PreTokenizedString(NormalizedString(L"野 口 里 佳 Noguchi Rika")));
+  validate_splits(expected, got.splits);
 }

@@ -132,50 +132,58 @@ WordPiece::WordPiece(std::unordered_map<std::string, int> vocab,
       max_input_chars_per_word(max_input_chars_per_word),
       continuing_subword_prefix(continuing_subword_prefix) {}
 
-std::vector<Token> WordPiece::tokenize(std::string sequence) const {
-  int char_len = sequence.length();
-  if (char_len > max_input_chars_per_word) {
-    auto it = vocab.find(unk_token);
-    if (it == vocab.end()) {
-      return {Token(0, unk_token, {0, char_len})};
-    }
-    return {Token(it->second, unk_token, {0, char_len})};
-  }
-  bool is_bad = false;
-  int start = 0;
-  std::vector<Token> sub_tokens;
-  while (start < sequence.length()) {
-    int end = sequence.length();
-    std::optional<Token> cur_sequence_token = std::nullopt;
-    while (start < end) {
-      std::string sub_sequence = sequence.substr(start, end - start);
-      if (start > 0) {
-        sub_sequence = continuing_subword_prefix + sub_sequence;
+PreTokenizedString WordPiece::tokenize(PreTokenizedString pre_tokenized) const {
+  for (auto &split : pre_tokenized.splits) {
+    std::string sequence = split.normalized;
+    int char_len = sequence.length();
+    if (char_len > max_input_chars_per_word) {
+      auto it = vocab.find(unk_token);
+      if (it == vocab.end()) {
+        split.tokens = {Token(0, unk_token, {0, char_len})};
+        continue;
       }
-      if (vocab.count(sub_sequence) != 0) {
-        auto it = vocab.find(sub_sequence);
-        if (it != vocab.end()) {
-          cur_sequence_token = Token(it->second, sub_sequence, {start, end});
+      split.tokens = {Token(it->second, unk_token, {0, char_len})};
+      continue;
+    }
+    bool is_bad = false;
+    int start = 0;
+    std::vector<Token> sub_tokens;
+    while (start < sequence.length()) {
+      int end = sequence.length();
+      std::optional<Token> cur_sequence_token = std::nullopt;
+      while (start < end) {
+        std::string sub_sequence = sequence.substr(start, end - start);
+        if (start > 0) {
+          sub_sequence = continuing_subword_prefix + sub_sequence;
         }
+        if (vocab.count(sub_sequence) != 0) {
+          auto it = vocab.find(sub_sequence);
+          if (it != vocab.end()) {
+            cur_sequence_token = Token(it->second, sub_sequence, {start, end});
+          }
+          break;
+        }
+        end -= 1;
+      }
+      if (!cur_sequence_token.has_value()) {
+        is_bad = true;
         break;
       }
-      end -= 1;
+      sub_tokens.push_back(cur_sequence_token.value());
+      start = end;
     }
-    if (!cur_sequence_token.has_value()) {
-      is_bad = true;
-      break;
+    if (is_bad) {
+      auto it = vocab.find(unk_token);
+      if (it == vocab.end()) {
+        split.tokens = {Token(0, unk_token, {0, char_len})};
+        continue;
+      }
+      split.tokens = {Token(it->second, unk_token, {0, char_len})};
+      continue;
     }
-    sub_tokens.push_back(cur_sequence_token.value());
-    start = end;
+    split.tokens = sub_tokens;
   }
-  if (is_bad) {
-    auto it = vocab.find(unk_token);
-    if (it == vocab.end()) {
-      return {Token(0, unk_token, {0, char_len})};
-    }
-    return {Token(it->second, unk_token, {0, char_len})};
-  }
-  return sub_tokens;
+  return pre_tokenized;
 }
 
 BPE::BPE(std::unordered_map<std::string, int> vocab,
@@ -192,4 +200,6 @@ BPE::BPE(std::unordered_map<std::string, int> vocab,
       byte_fallback(byte_fallback),
       ignore_merges(ignore_merges) {}
 
-std::vector<Token> BPE::tokenize(std::string sequence) const { return {}; }
+PreTokenizedString BPE::tokenize(PreTokenizedString pre_tokenized) const {
+  return pre_tokenized;
+}

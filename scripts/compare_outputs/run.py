@@ -1,7 +1,7 @@
 import sys
 from tokenizers import Tokenizer
 
-input = "我喜欢学习中文。Açúcar é doce."
+input = "我喜欢学习中文。\u007fAçúcar é doce."
 name = sys.argv[1]
 
 tokenizer = Tokenizer.from_file(name+"/tokenizer.json")

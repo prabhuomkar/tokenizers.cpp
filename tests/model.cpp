@@ -29,10 +29,10 @@ TEST(WordPieceModelTest, EmptyVocab) {
       "{\"type\":\"WordPiece\",\"unk_token\":\"[UNK]\",\"continuing_subword_"
       "prefix\":\"##\",\"max_input_chars_per_word\":100,\"vocab\":null}");
   EXPECT_NE(model, nullptr);
-  static std::string input = "hello world";
+  std::wstring input = L"hello world";
   std::vector<Token> expected = {Token(0, "[UNK]", {0, input.length()})};
-  std::vector<Token> got = model->tokenize(input);
-  assert_tokens(expected, got);
+  auto got = model->tokenize(PreTokenizedString(NormalizedString(input)));
+  assert_tokens(expected, got.splits[0].tokens);
 }
 
 TEST(WordPieceModelTest, Vocab) {
@@ -41,12 +41,12 @@ TEST(WordPieceModelTest, Vocab) {
       "prefix\":\"##\",\"max_input_chars_per_word\":100,\"vocab\":{\"hello\":"
       "420,\"[UNK]\":333}}");
   EXPECT_NE(model, nullptr);
-  static std::string input = "hello world";
+  std::wstring input = L"hello world";
   std::vector<Token> expected = {
       Token(333, "[UNK]", {0, input.length()}),
   };
-  std::vector<Token> got = model->tokenize(input);
-  assert_tokens(expected, got);
+  auto got = model->tokenize(PreTokenizedString(NormalizedString(input)));
+  assert_tokens(expected, got.splits[0].tokens);
 }
 
 TEST(WordPieceModelTest, UNKToken) {
@@ -55,12 +55,12 @@ TEST(WordPieceModelTest, UNKToken) {
       "subword_prefix\":\"##\",\"max_input_chars_per_word\":100,\"vocab\":{\"["
       "TEST_UNK]\":333}}");
   EXPECT_NE(model, nullptr);
-  static std::string input = "hello world";
+  std::wstring input = L"hello world";
   std::vector<Token> expected = {
       Token(333, "[TEST_UNK]", {0, input.length()}),
   };
-  std::vector<Token> got = model->tokenize(input);
-  assert_tokens(expected, got);
+  auto got = model->tokenize(PreTokenizedString(NormalizedString(input)));
+  assert_tokens(expected, got.splits[0].tokens);
 }
 
 TEST(WordPieceModelTest, MaxInputCharsPerWord) {
@@ -69,12 +69,12 @@ TEST(WordPieceModelTest, MaxInputCharsPerWord) {
       "prefix\":\"##\",\"max_input_chars_per_word\":10,\"vocab\":{\"[UNK]\":"
       "333}}");
   EXPECT_NE(model, nullptr);
-  static std::string input = "hello world";
+  std::wstring input = L"hello world";
   std::vector<Token> expected = {
       Token(333, "[UNK]", {0, input.length()}),
   };
-  std::vector<Token> got = model->tokenize(input);
-  assert_tokens(expected, got);
+  auto got = model->tokenize(PreTokenizedString(NormalizedString(input)));
+  assert_tokens(expected, got.splits[0].tokens);
 }
 
 TEST(WordPieceModelTest, ContinuingSubWordPrefix) {
@@ -83,11 +83,11 @@ TEST(WordPieceModelTest, ContinuingSubWordPrefix) {
       "prefix\":\"TEST_##\",\"max_input_chars_per_word\":100,\"vocab\":{"
       "\"hello\":420,\"TEST_## world\":111},\"[UNK]\":333}}");
   EXPECT_NE(model, nullptr);
-  static std::string input = "hello world";
+  std::wstring input = L"hello world";
   std::vector<Token> expected = {
       Token(420, "hello", {0, 5}),
       Token(111, "TEST_## world", {5, 11}),
   };
-  std::vector<Token> got = model->tokenize(input);
-  assert_tokens(expected, got);
+  auto got = model->tokenize(PreTokenizedString(NormalizedString(input)));
+  assert_tokens(expected, got.splits[0].tokens);
 }

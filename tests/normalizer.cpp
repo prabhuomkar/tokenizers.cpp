@@ -22,8 +22,9 @@ TEST(SequenceNormalizerTest, Simple) {
       "\"prepend\":\"▁\"},{\"type\":\"Replace\",\"pattern\":{\"String\":\" "
       "\"},\"content\":\"▁\"}]}");
   EXPECT_NE(normalizer, nullptr);
-  std::wstring got = normalizer->normalize(L"Hello World!\tThis is a test.\n");
-  EXPECT_EQ(L"▁Hello▁▁World!\tThis▁▁is▁▁a▁▁test.\n▁", got);
+  auto normalized = normalizer->normalize(
+      NormalizedString(L"Hello World!\tThis is a test.\n"));
+  EXPECT_EQ(L"▁Hello▁▁World!\tThis▁▁is▁▁a▁▁test.\n▁", normalized.get());
 }
 
 TEST(BertNormalizerTest, CleanText) {
@@ -31,8 +32,9 @@ TEST(BertNormalizerTest, CleanText) {
       "{\"type\":\"BertNormalizer\",\"clean_text\":true,\"handle_chinese_"
       "chars\":false,\"strip_accents\":null,\"lowercase\":false}");
   EXPECT_NE(normalizer, nullptr);
-  std::wstring got = normalizer->normalize(L"Hello World!\tThis is a test.\n");
-  EXPECT_EQ(L"Hello World! This is a test. ", got);
+  auto normalized = normalizer->normalize(
+      NormalizedString(L"Hello World!\tThis is a test.\n"));
+  EXPECT_EQ(L"Hello World! This is a test. ", normalized.get());
 }
 
 TEST(BertNormalizerTest, HandleChineseChars) {
@@ -40,8 +42,8 @@ TEST(BertNormalizerTest, HandleChineseChars) {
       "{\"type\":\"BertNormalizer\",\"clean_text\":false,\"handle_chinese_"
       "chars\":true,\"strip_accents\":null,\"lowercase\":false}");
   EXPECT_NE(normalizer, nullptr);
-  std::wstring got = normalizer->normalize(L"Hello 世界!");
-  EXPECT_EQ(L"Hello  世  界 !", got);
+  auto normalized = normalizer->normalize(NormalizedString(L"Hello 世界!"));
+  EXPECT_EQ(L"Hello  世  界 !", normalized.get());
 }
 
 TEST(BertNormalizerTest, StripAccents) {
@@ -49,8 +51,9 @@ TEST(BertNormalizerTest, StripAccents) {
       "{\"type\":\"BertNormalizer\",\"clean_text\":false,\"handle_chinese_"
       "chars\":false,\"strip_accents\":true,\"lowercase\":false}");
   EXPECT_NE(normalizer, nullptr);
-  std::wstring got = normalizer->normalize(L"Hélló Wórld! Thïs ïs á tést.");
-  EXPECT_EQ(L"Hello World! This is a test.", got);
+  auto normalized =
+      normalizer->normalize(NormalizedString(L"Hélló Wórld! Thïs ïs á tést."));
+  EXPECT_EQ(L"Hello World! This is a test.", normalized.get());
 }
 
 TEST(BertNormalizerTest, Lowercase) {
@@ -58,24 +61,25 @@ TEST(BertNormalizerTest, Lowercase) {
       "{\"type\":\"BertNormalizer\",\"clean_text\":false,\"handle_chinese_"
       "chars\":false,\"strip_accents\":null,\"lowercase\":true}");
   EXPECT_NE(normalizer, nullptr);
-  std::wstring got = normalizer->normalize(L"HELLO WORLD! THIS IS A TEST!");
-  EXPECT_EQ(L"hello world! this is a test!", got);
+  auto normalized =
+      normalizer->normalize(NormalizedString(L"HELLO WORLD! THIS IS A TEST!"));
+  EXPECT_EQ(L"hello world! this is a test!", normalized.get());
 }
 
 TEST(PrependNormalizerTest, Simple) {
   std::unique_ptr<Normalizer> normalizer =
       get_normalizer_from_string("{\"type\":\"Prepend\",\"prepend\":\"_\"}");
   EXPECT_NE(normalizer, nullptr);
-  std::wstring got = normalizer->normalize(L"Hello World!");
-  EXPECT_EQ(L"_Hello _World! ", got);
+  auto normalized = normalizer->normalize(NormalizedString(L"Hello World!"));
+  EXPECT_EQ(L"_Hello _World! ", normalized.get());
 }
 
 TEST(NFDNormalizerTest, Simple) {
   std::unique_ptr<Normalizer> normalizer =
       get_normalizer_from_string("{\"type\":\"NFD\"}");
   EXPECT_NE(normalizer, nullptr);
-  std::wstring got = normalizer->normalize(L"Héllo World!");
-  EXPECT_EQ(L"Héllo World!", got);
+  auto normalized = normalizer->normalize(NormalizedString(L"Héllo World!"));
+  EXPECT_EQ(L"Héllo World!", normalized.get());
 }
 
 TEST(ReplaceNormalizerTest, ReplaceContent) {
@@ -83,6 +87,6 @@ TEST(ReplaceNormalizerTest, ReplaceContent) {
       "{\"type\":\"Replace\",\"pattern\":{\"String\":\" "
       "\"},\"content\":\"▁\"}");
   EXPECT_NE(normalizer, nullptr);
-  std::wstring got = normalizer->normalize(L"Hello World!");
-  EXPECT_EQ(L"Hello▁World!", got);
+  auto normalized = normalizer->normalize(NormalizedString(L"Hello World!"));
+  EXPECT_EQ(L"Hello▁World!", normalized.get());
 }

@@ -9,6 +9,7 @@
 
 #include "simdjson.h"
 #include "tokenizers/common.h"
+#include "tokenizers/pre_tokenizer.h"
 
 enum MODEL {
   BPE_MODEL,
@@ -26,7 +27,8 @@ class Model {
   std::unordered_map<int, std::string> vocab_r;
 
   virtual ~Model() = default;
-  virtual std::vector<Token> tokenize(std::string sequence) const = 0;
+  virtual PreTokenizedString tokenize(
+      PreTokenizedString pre_tokenized) const = 0;
   explicit Model(std::unordered_map<std::string, int> vocab);
   int get_vocab_size();
   std::optional<int> token_to_id(std::string token);
@@ -41,7 +43,7 @@ class WordPiece : public Model {
   int max_input_chars_per_word;
   std::string continuing_subword_prefix;
 
-  std::vector<Token> tokenize(std::string sequence) const override;
+  PreTokenizedString tokenize(PreTokenizedString pre_tokenized) const override;
   WordPiece(std::unordered_map<std::string, int> vocab,
             std::string unk_token = "[UNK]", int max_input_chars_per_word = 100,
             std::string continuing_subword_prefix = "##");
@@ -58,7 +60,7 @@ class BPE : public Model {
   bool ignore_merges;
   std::vector<std::string> merges;
 
-  std::vector<Token> tokenize(std::string sequence) const override;
+  PreTokenizedString tokenize(PreTokenizedString pre_tokenized) const override;
   BPE(std::unordered_map<std::string, int> vocab,
       std::vector<std::string> merges, float dropout, std::string unk_token,
       std::string continuing_subword_prefix, std::string end_of_word_suffix,
