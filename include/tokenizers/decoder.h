@@ -8,11 +8,16 @@
 #include "simdjson.h"
 
 enum DECODER {
+  SEQUENCE_DECODER,
   BPE_DECODER,
   BYTE_LEVEL_DECODER,
   CTC_DECODER,
   METASPACE_DECODER,
   WORD_PIECE_DECODER,
+  BYTE_FALLBACK_DECODER,
+  FUSE_DECODER,
+  STRIP_DECODER,
+  REPLACE_DECODER,
   UNKNOWN_DECODER
 };
 
@@ -37,4 +42,51 @@ class WordPieceDecoder : public Decoder {
  private:
   std::string prefix;
   bool cleanup;
+};
+
+class ReplaceDecoder : public Decoder {
+ public:
+  explicit ReplaceDecoder(std::string pattern, std::string content);
+  std::vector<std::string> decode_chain(
+      std::vector<std::string> tokens) const override;
+
+ private:
+  std::string pattern;
+  std::string content;
+};
+
+class ByteFallbackDecoder : public Decoder {
+ public:
+  ByteFallbackDecoder();
+  std::vector<std::string> decode_chain(
+      std::vector<std::string> tokens) const override;
+};
+
+class FuseDecoder : public Decoder {
+ public:
+  FuseDecoder();
+  std::vector<std::string> decode_chain(
+      std::vector<std::string> tokens) const override;
+};
+
+class StripDecoder : public Decoder {
+ public:
+  explicit StripDecoder(std::string content, int start, int stop);
+  std::vector<std::string> decode_chain(
+      std::vector<std::string> tokens) const override;
+
+ private:
+  std::string content;
+  int start;
+  int stop;
+};
+
+class SequenceDecoder : public Decoder {
+ public:
+  explicit SequenceDecoder(std::vector<std::unique_ptr<Decoder>> decoders);
+  std::vector<std::string> decode_chain(
+      std::vector<std::string> tokens) const override;
+
+ private:
+  std::vector<std::unique_ptr<Decoder>> decoders;
 };

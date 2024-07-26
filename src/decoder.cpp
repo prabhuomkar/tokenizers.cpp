@@ -11,11 +11,16 @@
 
 DECODER get_decoder(std::string type) {
   static const std::unordered_map<std::string, DECODER> types = {
+      {"Sequence", SEQUENCE_DECODER},
       {"BPEDecoder", BPE_DECODER},
       {"ByteLevel", BYTE_LEVEL_DECODER},
       {"CTC", CTC_DECODER},
+      {"Strip", STRIP_DECODER},
       {"Metaspace", METASPACE_DECODER},
-      {"WordPiece", WORD_PIECE_DECODER}};
+      {"WordPiece", WORD_PIECE_DECODER},
+      {"ByteFallback", BYTE_FALLBACK_DECODER},
+      {"Replace", REPLACE_DECODER},
+      {"Fuse", FUSE_DECODER}};
 
   auto it = types.find(type);
   if (it != types.end()) {
@@ -29,7 +34,20 @@ std::unique_ptr<Decoder> with_decoder(
   simdjson::ondemand::value val;
   std::string type = std::string(
       static_cast<std::string_view>(decoder_params["type"].get_string()));
-  if (get_decoder(type) == WORD_PIECE_DECODER) {
+  if (get_decoder(type) == SEQUENCE_DECODER) {
+    simdjson::ondemand::array seq_decoder_params =
+        decoder_params["decoders"].get_array();
+    std::vector<std::unique_ptr<Decoder>> seq_decoders;
+    for (simdjson::ondemand::value val : seq_decoder_params) {
+      simdjson::ondemand::object seq_decoder_params = val.get_object();
+      std::unique_ptr<Decoder> seq_decoder = with_decoder(seq_decoder_params);
+      if (seq_decoder != nullptr) {
+        seq_decoders.push_back(std::move(seq_decoder));
+      }
+    }
+    return std::make_unique<SequenceDecoder>(
+        SequenceDecoder(std::move(seq_decoders)));
+  } else if (get_decoder(type) == WORD_PIECE_DECODER) {
     val = decoder_params["prefix"].value();
     std::string prefix =
         std::string(val.type() == simdjson::ondemand::json_type::null
@@ -41,6 +59,38 @@ std::unique_ptr<Decoder> with_decoder(
                        : static_cast<bool>(val.get_bool());
     return std::make_unique<WordPieceDecoder>(
         WordPieceDecoder(prefix, cleanup));
+  } else if (get_decoder(type) == STRIP_DECODER) {
+    val = decoder_params["content"].value();
+    std::string content =
+        std::string(val.type() == simdjson::ondemand::json_type::null
+                        ? ""
+                        : static_cast<std::string_view>(val.get_string()));
+    val = decoder_params["start"].value();
+    int start = val.type() == simdjson::ondemand::json_type::null
+                    ? 0
+                    : static_cast<int>(val.get_int64());
+    val = decoder_params["stop"].value();
+    int stop = val.type() == simdjson::ondemand::json_type::null
+                   ? 0
+                   : static_cast<int>(val.get_int64());
+    return std::make_unique<StripDecoder>(StripDecoder(content, start, stop));
+  } else if (get_decoder(type) == REPLACE_DECODER) {
+    val = decoder_params["pattern"].value();
+    std::string pattern =
+        std::string(val.type() == simdjson::ondemand::json_type::null
+                        ? ""
+                        : static_cast<std::string_view>(
+                              val["String"].value().get_string()));
+    val = decoder_params["content"].value();
+    std::string content =
+        std::string(val.type() == simdjson::ondemand::json_type::null
+                        ? ""
+                        : static_cast<std::string_view>(val.get_string()));
+    return std::make_unique<ReplaceDecoder>(ReplaceDecoder(pattern, content));
+  } else if (get_decoder(type) == BYTE_FALLBACK_DECODER) {
+    return std::make_unique<ByteFallbackDecoder>(ByteFallbackDecoder());
+  } else if (get_decoder(type) == FUSE_DECODER) {
+    return std::make_unique<FuseDecoder>(FuseDecoder());
   }
   return nullptr;
 }
@@ -90,4 +140,45 @@ std::vector<std::string> WordPieceDecoder::decode_chain(
     result.push_back(token);
   }
   return result;
+}
+
+ReplaceDecoder::ReplaceDecoder(std::string pattern, std::string content)
+    : pattern(pattern), content(content) {}
+
+std::vector<std::string> ReplaceDecoder::decode_chain(
+    std::vector<std::string> tokens) const {
+  return {};
+}
+
+ByteFallbackDecoder::ByteFallbackDecoder() {}
+
+std::vector<std::string> ByteFallbackDecoder::decode_chain(
+    std::vector<std::string> tokens) const {
+  return {};
+}
+
+FuseDecoder::FuseDecoder() {}
+
+std::vector<std::string> FuseDecoder::decode_chain(
+    std::vector<std::string> tokens) const {
+  return {};
+}
+
+StripDecoder::StripDecoder(std::string content, int start, int stop)
+    : content(content), start(start), stop(stop) {}
+
+std::vector<std::string> StripDecoder::decode_chain(
+    std::vector<std::string> tokens) const {
+  return {};
+}
+
+SequenceDecoder::SequenceDecoder(std::vector<std::unique_ptr<Decoder>> decoders)
+    : decoders(std::move(decoders)) {}
+
+std::vector<std::string> SequenceDecoder::decode_chain(
+    std::vector<std::string> tokens) const {
+  for (const std::unique_ptr<Decoder>& decoder : decoders) {
+    tokens = decoder->decode_chain(tokens);
+  }
+  return tokens;
 }
