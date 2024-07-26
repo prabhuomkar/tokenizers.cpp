@@ -207,6 +207,23 @@ BPE::BPE(std::unordered_map<std::string, int> vocab,
       byte_fallback(byte_fallback),
       ignore_merges(ignore_merges) {}
 
+void BPE::merge_word(std::string word) const {}
+
+std::vector<Token> BPE::word_to_tokens() const { return {}; }
+
+std::vector<Token> BPE::tokenize_with_cache(std::string sequence) const {
+  return {};
+}
+
 PreTokenizedString BPE::tokenize(PreTokenizedString pre_tokenized) const {
+  for (auto &split : pre_tokenized.splits) {
+    std::string sequence = split.normalized;
+    if (dropout == 0.0f) {
+      split.tokens = tokenize_with_cache(sequence);
+    } else {
+      merge_word(sequence);
+      split.tokens = word_to_tokens();
+    }
+  }
   return pre_tokenized;
 }
