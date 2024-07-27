@@ -77,6 +77,7 @@ Tokenizer::Tokenizer(std::string path, std::string config) {
 }
 
 Encoding Tokenizer::encode(std::wstring sequence, bool add_special_tokens) {
+  added_vocabulary->extract_and_normalize(normalizer.get(), sequence);
   NormalizedString normalized(sequence);
   if (normalizer != nullptr) {
     normalized = normalizer->normalize(normalized);

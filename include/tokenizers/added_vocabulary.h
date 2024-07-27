@@ -13,6 +13,7 @@
 #include "simdjson.h"
 #include "tokenizers/model.h"
 #include "tokenizers/normalizer.h"
+#include "tokenizers/pre_tokenizer.h"
 
 class AddedToken {
  public:
@@ -40,6 +41,8 @@ class AddedVocabulary {
                          Normalizer* normalizer);
   bool is_special_token(std::string token);
   std::optional<std::string> id_to_token(int id);
+  PreTokenizedString extract_and_normalize(Normalizer* normalizer,
+                                           std::wstring sequence);
 
  private:
   std::unordered_map<std::string, int> added_tokens_map;
@@ -50,11 +53,9 @@ class AddedVocabulary {
       split_non_normalized_trie;
   std::pair<std::vector<std::string>, std::vector<int>> split_normalized_trie;
   void refresh_added_tokens(Model* model, Normalizer* normalizer);
-  std::vector<std::pair<
-      std::string,
-      std::optional<std::tuple<int, std::string, std::pair<int, int>>>>>
-  find_matches(std::string sentence,
-               std::pair<std::vector<std::string>, std::vector<int>> split_re);
+  std::vector<std::pair<std::optional<int>, std::pair<int, int>>> find_matches(
+      std::wstring sentence,
+      std::pair<std::vector<std::string>, std::vector<int>> split_re);
 };
 
 std::unique_ptr<AddedVocabulary> with_added_vocabulary(

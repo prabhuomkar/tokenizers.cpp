@@ -1,6 +1,9 @@
 // Copyright 2024 Omkar Prabhu
 #include "tokenizers/added_vocabulary.h"
 
+#include <unicode/uchar.h>
+#include <unicode/unistr.h>
+
 #include <algorithm>
 #include <memory>
 #include <optional>
@@ -10,6 +13,7 @@
 
 #include "tokenizers/model.h"
 #include "tokenizers/normalizer.h"
+#include "tokenizers/pre_tokenizer.h"
 
 AddedToken::AddedToken() {}
 
@@ -125,37 +129,57 @@ void AddedVocabulary::refresh_added_tokens(Model* model,
   split_non_normalized_trie = {non_normalized_tokens, non_normalized_ids};
 }
 
-std::vector<
-    std::pair<std::string,
-              std::optional<std::tuple<int, std::string, std::pair<int, int>>>>>
+std::vector<std::pair<std::optional<int>, std::pair<int, int>>>
 AddedVocabulary::find_matches(
-    std::string sentence,
+    std::wstring sentence,
     std::pair<std::vector<std::string>, std::vector<int>> split_re) {
   // TODO(omkar): update to find matches from trie
-  std::vector<std::pair<
-      std::string,
-      std::optional<std::tuple<int, std::string, std::pair<int, int>>>>>
-      result;
+  std::vector<std::tuple<int, int, int>> matches;
   std::unordered_map<std::string, int> word_ids;
-  for (size_t i = 0; i < split_re.first.size(); ++i) {
+  for (int i = 0; i < split_re.first.size(); ++i) {
     word_ids[split_re.first[i]] = split_re.second[i];
   }
-  size_t start = 0;
-  for (size_t i = 0; i < sentence.length(); ++i) {
-    if (sentence[i] == ' ') {
-      if (i > start && word_ids.count(sentence.substr(start, i - start)) > 0) {
-        std::string word = sentence.substr(start, i - start);
-        result.push_back({word, std::make_tuple(word_ids[word], word,
-                                                std::make_pair(start, i))});
+  icu::UnicodeString unicode_sentence = icu::UnicodeString::fromUTF32(
+      reinterpret_cast<const UChar32*>(sentence.c_str()), sentence.length());
+  int i = 0, start = 0;
+  while (i < unicode_sentence.length()) {
+    if (unicode_sentence[i] == ' ' || i == unicode_sentence.length() - 1) {
+      std::string sub_sentence;
+      unicode_sentence.tempSubString(start, i - start)
+          .toUTF8String(sub_sentence);
+      if (i > start && word_ids.count(sub_sentence) > 0) {
+        matches.push_back({start, i, word_ids[sub_sentence]});
       }
       start = i + 1;
     }
+    i++;
   }
-  if (start < sentence.length() && word_ids.count(sentence.substr(start)) > 0) {
-    std::string word = sentence.substr(start);
-    result.push_back(
-        {word, std::make_tuple(word_ids[word], word,
-                               std::make_pair(start, sentence.length()))});
+  std::vector<std::pair<std::optional<int>, std::pair<int, int>>> result;
+  int start_offset = 0;
+  for (auto match : matches) {
+    int start = std::get<0>(match), stop = std::get<1>(match),
+        id = std::get<2>(match);
+    AddedToken added_token = added_tokens_map_r[id];
+    std::cout << start << " " << stop << " " << id << " " << added_token.content
+              << std::endl;
+    if (special_tokens_set.count(added_token.content) > 0) {
+      continue;
+    }
+    if (added_token.single_word) {
+    }
+    if (added_token.lstrip) {
+    }
+    if (added_token.rstrip) {
+    }
+    if (start_offset < start) {
+      result.push_back({std::nullopt, {start_offset, start}});
+    }
+    result.push_back({id, {start, stop}});
+    start_offset = stop;
+  }
+  int total_len = unicode_sentence.length();
+  if (start_offset != total_len) {
+    result.push_back({std::nullopt, {start_offset, total_len}});
   }
   return result;
 }
@@ -163,6 +187,30 @@ AddedVocabulary::find_matches(
 int AddedVocabulary::add_special_tokens(std::vector<AddedToken> tokens,
                                         Model* model, Normalizer* normalizer) {
   return add_tokens(tokens, model, normalizer);
+}
+
+PreTokenizedString AddedVocabulary::extract_and_normalize(
+    Normalizer* normalizer, std::wstring sequence) {
+  PreTokenizedString pre_tokenized =
+      PreTokenizedString(NormalizedString(sequence));
+  // extract the non-normalized tokens
+  auto matches = find_matches(pre_tokenized.normalized.normalized,
+                              split_non_normalized_trie);
+  std::vector<Split> new_splits;
+  for (auto match : matches) {
+    std::cout << (match.first.has_value() ? match.first.value() : 0) << " and ("
+              << match.second.first << "," << match.second.second << ")"
+              << std::endl;
+  }
+  if (new_splits.size() > 0) {
+    pre_tokenized.splits = new_splits;
+  }
+  matches =
+      find_matches(pre_tokenized.normalized.normalized, split_normalized_trie);
+  for (auto match : matches) {
+  }
+  // extract the normalized tokens
+  return pre_tokenized;
 }
 
 std::unique_ptr<AddedVocabulary> with_added_vocabulary(
