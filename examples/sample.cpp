@@ -45,7 +45,9 @@ void print_result(std::vector<var_type> elems) {
 
 int main(int argc, char* argv[]) {
   auto tokenizer = Tokenizer(std::string(argv[1]));
-  std::wstring input = L"J'aime les crêpes au chocolat pour le petit-déjeuner.";
+
+  std::wstring input = convert_from_string(std::string(argv[2]));
+
   auto result = tokenizer.encode(input);
   std::cout << "Encoding: " << convert_to_string(input) << std::endl;
   std::cout << "ids: ";

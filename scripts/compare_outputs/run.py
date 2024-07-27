@@ -1,11 +1,10 @@
 import sys
 from tokenizers import Tokenizer
 
-input = "J'aime les crêpes au chocolat pour le petit-déjeuner."
 name = sys.argv[1]
+input = ' '.join(sys.argv[2:len(sys.argv)])
 
 tokenizer = Tokenizer.from_file(name+"/tokenizer.json")
-print(tokenizer.normalizer.normalize_str(input))
 print("Encoding:", input)
 result = tokenizer.encode(input)
 print("ids:", result.ids)

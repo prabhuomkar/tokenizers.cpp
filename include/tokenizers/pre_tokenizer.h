@@ -1,6 +1,10 @@
 // Copyright 2024 Omkar Prabhu
 #pragma once
 
+#include <unicode/uchar.h>
+#include <unicode/unistr.h>
+
+#include <functional>
 #include <memory>
 #include <string>
 #include <vector>
@@ -23,8 +27,6 @@ enum PRE_TOKENIZER {
   UNKNOWN_PRE_TOKENIZER
 };
 
-enum SPLIT_DELIMITER_BEHAVIOR { REMOVED, ISOLATED };
-
 PRE_TOKENIZER
 get_pre_tokenizer(std::string type);
 
@@ -33,6 +35,8 @@ class PreTokenizedString {
   NormalizedString normalized;
   std::vector<Split> splits;
   explicit PreTokenizedString(NormalizedString normalized);
+  void split(std::function<bool(UChar32)> split_fn,
+             SPLIT_DELIMITER_BEHAVIOR pattern);
 };
 
 class PreTokenizer {

@@ -68,59 +68,71 @@ std::vector<int> find_matches(icu::UnicodeString input,
   }
   return matches;
 }
-
-std::vector<Split> split(std::vector<Split> splits,
-                         std::function<bool(UChar32)> split_fn,
-                         SPLIT_DELIMITER_BEHAVIOR pattern) {
+std::vector<Split> split_normalized(Split original_split,
+                                    std::function<bool(UChar32)> split_fn,
+                                    SPLIT_DELIMITER_BEHAVIOR pattern) {
   std::vector<Split> new_splits;
-  for (Split split : splits) {
-    int offset = 0;
-    icu::UnicodeString split_unciode_str =
-        icu::UnicodeString::fromUTF8(split.normalized);
-    std::vector<int> matches = find_matches(split_unciode_str, split_fn);
-    for (int match : matches) {
-      if (split_unciode_str.tempSubStringBetween(offset, match).length() != 0) {
-        std::string split_normalized;
-        split_unciode_str.tempSubStringBetween(offset, match)
-            .toUTF8String(split_normalized);
-        new_splits.push_back(
-            Split(split_normalized,
-                  {offset + split.offsets.first, match + split.offsets.first}));
-      }
-      switch (pattern) {
-        case REMOVED:
-          break;
-        case ISOLATED:
-          std::string split_normalized;
-          split_unciode_str.tempSubStringBetween(match, match + 1)
-              .toUTF8String(split_normalized);
-          new_splits.push_back(Split(
-              split_normalized,
-              {match + split.offsets.first, match + split.offsets.first + 1}));
-          break;
-      }
-      offset = match + 1;
-    }
-    if (offset <= split_unciode_str.length() - 1) {
+  int offset = 0;
+  icu::UnicodeString unicode_normalized =
+      icu::UnicodeString::fromUTF8(original_split.normalized);
+  std::vector<int> matches = find_matches(unicode_normalized, split_fn);
+  for (int match : matches) {
+    if (unicode_normalized.tempSubStringBetween(offset, match).length() != 0) {
       std::string split_normalized;
-      split_unciode_str.tempSubStringBetween(offset, split_unciode_str.length())
+      unicode_normalized.tempSubStringBetween(offset, match)
           .toUTF8String(split_normalized);
       new_splits.push_back(
-          Split(split_normalized,
-                {offset + split.offsets.first,
-                 split_unciode_str.length() + split.offsets.first}));
+          Split(split_normalized, {offset + original_split.offsets.first,
+                                   match + original_split.offsets.first}));
     }
+    switch (pattern) {
+      case REMOVED:
+        break;
+      case ISOLATED:
+        std::string split_normalized;
+        unicode_normalized.tempSubStringBetween(match, match + 1)
+            .toUTF8String(split_normalized);
+        new_splits.push_back(Split(
+            split_normalized, {match + original_split.offsets.first,
+                               match + original_split.offsets.first + +1}));
+        break;
+    }
+    offset = match + 1;
+  }
+  if (offset <= unicode_normalized.length() - 1) {
+    std::string split_normalized;
+    unicode_normalized.tempSubStringBetween(offset, unicode_normalized.length())
+        .toUTF8String(split_normalized);
+    new_splits.push_back(
+        Split(split_normalized,
+              {offset + original_split.offsets.first,
+               unicode_normalized.length() + original_split.offsets.first}));
   }
   return new_splits;
+}
+
+void PreTokenizedString::split(std::function<bool(UChar32)> split_fn,
+                               SPLIT_DELIMITER_BEHAVIOR pattern) {
+  std::vector<Split> new_splits;
+  for (auto org_split : splits) {
+    if (org_split.tokens.size() != 0) {
+      new_splits.push_back(org_split);
+      continue;
+    }
+
+    std::vector<Split> new_normalized_splits =
+        split_normalized(org_split, split_fn, pattern);
+    new_splits.insert(new_splits.end(), new_normalized_splits.begin(),
+                      new_normalized_splits.end());
+  }
+  splits = new_splits;
 }
 
 BertPreTokenizer::BertPreTokenizer() {}
 
 PreTokenizedString BertPreTokenizer::pre_tokenize(
     PreTokenizedString pre_tokenized) const {
-  pre_tokenized.splits = split(pre_tokenized.splits, is_whitespace,
-                               SPLIT_DELIMITER_BEHAVIOR::REMOVED);
-  pre_tokenized.splits = split(pre_tokenized.splits, is_bert_punc,
-                               SPLIT_DELIMITER_BEHAVIOR::ISOLATED);
+  pre_tokenized.split(is_whitespace, SPLIT_DELIMITER_BEHAVIOR::REMOVED);
+  pre_tokenized.split(is_bert_punc, SPLIT_DELIMITER_BEHAVIOR::ISOLATED);
   return pre_tokenized;
 }

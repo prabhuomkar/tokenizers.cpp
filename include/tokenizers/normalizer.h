@@ -1,7 +1,11 @@
 // Copyright 2024 Omkar Prabhu
 #pragma once
 
+#include <unicode/uchar.h>
+#include <unicode/unistr.h>
+
 #include <algorithm>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <string>
@@ -9,6 +13,7 @@
 #include <vector>
 
 #include "simdjson.h"
+#include "tokenizers/common.h"
 
 enum NORMALIZER {
   SEQUENCE_NORMALIZER,

@@ -10,8 +10,8 @@ DIFF_OUTPUT="diff_output.txt"
 rm *_output.txt
 
 # Generate outputs
-python3 $PYTHON_SCRIPT $1 > $PYTHON_OUTPUT
-$CPP_EXECUTABLE $1 > $CPP_OUTPUT
+python3 $PYTHON_SCRIPT $1 $2 > $PYTHON_OUTPUT
+$CPP_EXECUTABLE $1 "$2" > $CPP_OUTPUT
 
 # Generate diff
 diff $PYTHON_OUTPUT $CPP_OUTPUT > $DIFF_OUTPUT

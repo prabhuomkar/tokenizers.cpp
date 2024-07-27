@@ -2,9 +2,11 @@
 #include "tokenizers/normalizer.h"
 
 #include <unicode/normlzr.h>
+#include <unicode/uchar.h>
 #include <unicode/unistr.h>
 
 #include <algorithm>
+#include <functional>
 #include <iostream>
 #include <memory>
 #include <optional>

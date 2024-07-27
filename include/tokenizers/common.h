@@ -35,6 +35,8 @@ class Token {
   Token(int id, std::string value, std::pair<int, int> offsets);
 };
 
+enum SPLIT_DELIMITER_BEHAVIOR { REMOVED, ISOLATED };
+
 class Split {
  public:
   std::string normalized;
