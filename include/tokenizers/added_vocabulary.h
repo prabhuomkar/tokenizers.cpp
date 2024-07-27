@@ -45,6 +45,7 @@ class AddedVocabulary {
                                            std::wstring sequence);
 
  private:
+  bool encode_special_tokens;
   std::unordered_map<std::string, int> added_tokens_map;
   std::unordered_map<int, AddedToken> added_tokens_map_r;
   std::vector<AddedToken> special_tokens;
@@ -54,7 +55,7 @@ class AddedVocabulary {
   std::pair<std::vector<std::string>, std::vector<int>> split_normalized_trie;
   void refresh_added_tokens(Model* model, Normalizer* normalizer);
   std::vector<std::pair<std::optional<int>, std::pair<int, int>>> find_matches(
-      std::wstring sentence,
+      std::string sentence,
       std::pair<std::vector<std::string>, std::vector<int>> split_re);
 };
 
