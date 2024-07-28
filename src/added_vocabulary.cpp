@@ -171,10 +171,17 @@ AddedVocabulary::find_matches(
   while (i < unicode_sentence.length()) {
     if (unicode_sentence[i] == ' ' || i == unicode_sentence.length() - 1) {
       std::string sub_sentence;
-      unicode_sentence.tempSubString(start, i - start)
+      unicode_sentence
+          .tempSubString(start, (i == unicode_sentence.length() - 1
+                                     ? unicode_sentence.length() - start
+                                     : i - start))
           .toUTF8String(sub_sentence);
       if (i > start && word_ids.count(sub_sentence) > 0) {
-        matches.push_back({start, i, word_ids[sub_sentence]});
+        matches.push_back(
+            {start,
+             (i == unicode_sentence.length() - 1 ? unicode_sentence.length()
+                                                 : i),
+             word_ids[sub_sentence]});
       }
       start = i + 1;
     }
@@ -228,11 +235,10 @@ PreTokenizedString AddedVocabulary::extract_and_normalize(
     Normalizer* normalizer, std::wstring sequence) {
   PreTokenizedString pre_tokenized =
       PreTokenizedString(NormalizedString(sequence));
-  // extract the non-normalized tokens
   auto matches =
       find_matches(convert_to_string(pre_tokenized.normalized.normalized),
                    split_non_normalized_trie);
-  std::vector<Split> new_splits;
+  std::vector<Split> non_normalized_splits;
   for (auto match : matches) {
     std::string value =
         convert_to_string(pre_tokenized.normalized.normalized.substr(
@@ -241,43 +247,62 @@ PreTokenizedString AddedVocabulary::extract_and_normalize(
       Split new_split = Split(value, match.second);
       new_split.tokens = {
           Token(match.first.value(), value, {0, value.length()})};
-      new_splits.push_back(new_split);
+      non_normalized_splits.push_back(new_split);
     } else {
-      new_splits.push_back(Split(value, match.second));
+      non_normalized_splits.push_back(Split(value, match.second));
     }
   }
-  if (new_splits.size() > 0) {
-    pre_tokenized.splits = new_splits;
+  if (non_normalized_splits.size() > 0) {
+    pre_tokenized.splits = non_normalized_splits;
   }
-  new_splits = {};
-  for (auto split : pre_tokenized.splits) {
-    if (split.tokens.size() > 0) {
-      new_splits.push_back(split);
-      continue;
-    }
-    if (normalizer != nullptr) {
-      auto normalized = normalizer->normalize(
-          NormalizedString(convert_from_string(split.normalized)));
-      split.normalized = convert_to_string(normalized.normalized);
-    }
-    matches = find_matches(split.normalized, split_normalized_trie);
-    for (auto match : matches) {
-      std::string value = split.normalized.substr(
-          match.second.first, match.second.second - match.second.first);
-      if (match.first.has_value()) {
-        Split new_split = Split(value, match.second);
-        new_split.tokens = {Token(
-            match.first.value(), value,
-            {0 + split.offsets.first, value.length() + split.offsets.first})};
-        new_splits.push_back(new_split);
-      } else {
-        new_splits.push_back(
-            Split(value, {match.second.first + split.offsets.first,
-                          match.second.second + split.offsets.first}));
+
+  std::vector<Split> normalized_splits;
+  int ending_idx = 0;
+  for (auto original_split : pre_tokenized.splits) {
+    if (original_split.tokens.size() > 0) {
+      Split new_split = original_split;
+      new_split.offsets = {ending_idx,
+                           ending_idx + new_split.normalized.length()};
+      normalized_splits.push_back(new_split);
+      ending_idx += new_split.normalized.length();
+    } else {
+      NormalizedString split_normalized =
+          NormalizedString(convert_from_string(original_split.normalized));
+      if (normalizer != nullptr) {
+        split_normalized = normalizer->normalize(split_normalized);
       }
+      std::pair<int, int> new_split_offset = {
+          ending_idx, ending_idx + original_split.offsets.second -
+                          original_split.offsets.first};
+      pre_tokenized.normalized.transform_range(new_split_offset,
+                                               split_normalized);
+
+      matches = find_matches(convert_to_string(split_normalized.normalized),
+                             split_normalized_trie);
+      for (auto match : matches) {
+        std::string value =
+            convert_to_string(split_normalized.normalized.substr(
+                match.second.first, match.second.second - match.second.first));
+        if (match.first.has_value()) {
+          Split new_split =
+              Split(value, {match.second.first + new_split_offset.first,
+                            match.second.second + new_split_offset.first});
+          new_split.tokens = {
+              Token(match.first.value(), value, {0, value.length()})};
+          normalized_splits.push_back(new_split);
+        } else {
+          normalized_splits.push_back(
+              Split(value, {match.second.first + new_split_offset.first,
+                            match.second.second + new_split_offset.first}));
+        }
+      }
+      ending_idx += split_normalized.normalized.length();
     }
   }
-  pre_tokenized.splits = new_splits;
+  if (normalized_splits.size() > 0) {
+    pre_tokenized.splits = normalized_splits;
+  }
+
   return pre_tokenized;
 }
 

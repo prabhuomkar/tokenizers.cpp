@@ -43,6 +43,8 @@ class NormalizedString {
   NormalizedString(std::wstring normalized,
                    std::vector<std::pair<int, int>> offsets);
   void transform(int i, std::string op, int n);
+  void transform_range(std::pair<int, int> offsets,
+                       NormalizedString sub_normalized);
 };
 
 class Normalizer {

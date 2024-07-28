@@ -143,6 +143,56 @@ std::unique_ptr<Normalizer> with_normalizer(
   return nullptr;
 }
 
+void NormalizedString::transform_range(std::pair<int, int> original_offsets,
+                                       NormalizedString sub_normalized) {
+  int original_start = original_offsets.first;
+  int original_end = original_offsets.second;
+  int offsets_start = offset_ranges[original_start].first;
+  int offsets_end = offset_ranges[original_end].first;
+  std::vector<std::pair<int, int>> new_offset_ranges;
+  for (int i = 0; i < sub_normalized.offset_ranges.size(); i++) {
+    if (i == 0) {
+      sub_normalized.offset_ranges[i].first =
+          offset_ranges[original_start].first;
+    } else {
+      sub_normalized.offset_ranges[i].first =
+          sub_normalized.offset_ranges[i - 1].first +
+          sub_normalized.offset_ranges[i - 1].second;
+    }
+    new_offset_ranges.push_back(sub_normalized.offset_ranges[i]);
+  }
+  int j = new_offset_ranges.size();
+  for (int i = original_end; i < offset_ranges.size(); i++) {
+    new_offset_ranges.push_back(
+        {new_offset_ranges[j - 1].first + new_offset_ranges[j - 1].second,
+         offset_ranges[i].second});
+    j++;
+  }
+  std::pair<int, int> prev;
+  for (int i = 0; i < sub_normalized.offsets.size(); i++) {
+    if (i == 0) {
+      prev = sub_normalized.offsets[i];
+      sub_normalized.offsets[i].first = offsets[offsets_start].first;
+      sub_normalized.offsets[i].second = offsets[offsets_start].second;
+    } else {
+      if (prev == sub_normalized.offsets[i]) {
+        sub_normalized.offsets[i] = sub_normalized.offsets[i - 1];
+      } else {
+        prev = sub_normalized.offsets[i];
+        sub_normalized.offsets[i] = {sub_normalized.offsets[i - 1].second,
+                                     sub_normalized.offsets[i - 1].second + 1};
+      }
+    }
+  }
+  offset_ranges.erase(offset_ranges.begin() + original_start,
+                      offset_ranges.end());
+  offset_ranges.insert(offset_ranges.begin() + original_start,
+                       new_offset_ranges.begin(), new_offset_ranges.end());
+  offsets.erase(offsets.begin() + offsets_start, offsets.begin() + offsets_end);
+  offsets.insert(offsets.begin() + offsets_start,
+                 sub_normalized.offsets.begin(), sub_normalized.offsets.end());
+}
+
 void NormalizedString::transform(int i, std::string op, int n) {
   int start = offset_ranges[i].first;
   int limit = offset_ranges[i].second;
