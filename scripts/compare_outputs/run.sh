@@ -1,6 +1,6 @@
 #!/bin/bash
 PYTHON_SCRIPT="run.py"
-CPP_EXECUTABLE="../../build/examples/run"
+CPP_EXECUTABLE="../../build/examples/run/run"
 
 PYTHON_OUTPUT="python_output.txt"
 CPP_OUTPUT="cpp_output.txt"

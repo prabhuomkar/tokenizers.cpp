@@ -169,23 +169,22 @@ AddedVocabulary::find_matches(
   icu::UnicodeString unicode_sentence = icu::UnicodeString::fromUTF8(sentence);
   int i = 0, start = 0;
   while (i < unicode_sentence.length()) {
-    if (unicode_sentence[i] == ' ' || i == unicode_sentence.length() - 1) {
-      std::string sub_sentence;
-      unicode_sentence
-          .tempSubString(start, (i == unicode_sentence.length() - 1
-                                     ? unicode_sentence.length() - start
-                                     : i - start))
-          .toUTF8String(sub_sentence);
-      if (i > start && word_ids.count(sub_sentence) > 0) {
-        matches.push_back(
-            {start,
-             (i == unicode_sentence.length() - 1 ? unicode_sentence.length()
-                                                 : i),
-             word_ids[sub_sentence]});
-      }
+    std::string sub_sentence;
+    unicode_sentence.tempSubString(start, i - start).toUTF8String(sub_sentence);
+    if (word_ids.count(sub_sentence) > 0) {
+      matches.push_back({start, i, word_ids[sub_sentence]});
+      start = i;
+    } else if (unicode_sentence[i] == ' ') {
       start = i + 1;
     }
     i++;
+  }
+  if (i != start) {
+    std::string sub_sentence;
+    unicode_sentence.tempSubString(start, i - start).toUTF8String(sub_sentence);
+    if (word_ids.count(sub_sentence) > 0) {
+      matches.push_back({start, i, word_ids[sub_sentence]});
+    }
   }
   std::vector<std::pair<std::optional<int>, std::pair<int, int>>> result;
   int start_offset = 0;

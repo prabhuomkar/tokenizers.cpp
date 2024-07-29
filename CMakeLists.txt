@@ -28,12 +28,15 @@ target_include_directories(tokenizers
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-install(TARGETS tokenizers DESTINATION lib)
+install(TARGETS tokenizers
+        ARCHIVE DESTINATION lib
+        LIBRARY DESTINATION lib
+        RUNTIME DESTINATION bin)
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/ DESTINATION include)
 
+add_subdirectory(examples/run)
+add_subdirectory(examples/libtorch-bert)
 add_subdirectory(third_party/googletest)
 
 enable_testing()
 add_subdirectory(tests)
-
-add_subdirectory(examples)
