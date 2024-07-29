@@ -40,19 +40,6 @@ NORMALIZER get_normalizer(std::string type) {
   return UNKNOWN_NORMALIZER;
 }
 
-void debug(NormalizedString normalized) {
-  std::cout << normalized.offset_ranges.size() << std::endl;
-  for (auto ofr : normalized.offset_ranges) {
-    std::cout << "(" << ofr.first << "," << ofr.second << "), ";
-  }
-  std::cout << std::endl;
-  std::cout << normalized.offsets.size() << std::endl;
-  for (auto ofr : normalized.offsets) {
-    std::cout << "(" << ofr.first << "," << ofr.second << "), ";
-  }
-  std::cout << std::endl;
-}
-
 NormalizedString::NormalizedString(std::wstring normalized)
     : normalized(normalized) {
   icu::UnicodeString unicode_normalized = icu::UnicodeString::fromUTF32(
@@ -148,7 +135,9 @@ void NormalizedString::transform_range(std::pair<int, int> original_offsets,
   int original_start = original_offsets.first;
   int original_end = original_offsets.second;
   int offsets_start = offset_ranges[original_start].first;
-  int offsets_end = offset_ranges[original_end].first;
+  int offsets_end = original_end == offset_ranges.size()
+                        ? offset_ranges[original_end - 1].first
+                        : offset_ranges[original_end].first;
   std::vector<std::pair<int, int>> new_offset_ranges;
   for (int i = 0; i < sub_normalized.offset_ranges.size(); i++) {
     if (i == 0) {
