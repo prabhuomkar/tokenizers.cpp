@@ -9,7 +9,7 @@ run in a C++ environment without any Python dependencies
 - Run some benchmarks to compare performance with Rust version and improve C++ version
 
 ## Support Matrix
-This section will provide information about the components and their respective support status.  
+This section will provide information about the [Tokenizer components](https://huggingface.co/docs/tokenizers/components) and their respective support status.  
 - ✅ - Done
 - 🚧 - Planned/Work In Progress
 
@@ -91,3 +91,50 @@ This section will provide information about the components and their respective 
 [Fuse]: https://github.com/huggingface/tokenizers/blob/main/tokenizers/src/decoders/fuse.rs
 [StripDecoder]: https://github.com/huggingface/tokenizers/blob/main/tokenizers/src/decoders/strip.rs
 [ByteFallbackDecoder]: https://github.com/huggingface/tokenizers/blob/main/tokenizers/src/decoders/byte_fallback.rs
+
+## Setup
+For setting up the developer environment you will need following installed:
+- [C++ Compiler](https://en.cppreference.com/w/cpp/compiler_support): `gcc` or `clang` is preferred for compiling the source code
+- [CMake](https://cmake.org/): build system
+- [ClangFormat](https://clang.llvm.org/docs/ClangFormat.html): for formatting the C++ code
+- [Common Sense](https://en.wikipedia.org/wiki/Common_sense): essential for working with C++
+
+### Directory Structure
+- [android](../android/): related to Android library using C++ native
+- [docs](../docs/): markdown files for providing navigation to the visitors
+- [examples](../examples/): cross-platform and basic demos 
+- [include](../include/): header files
+- [ios](../ios/): related to iOS library
+- [scripts](../scripts/): basic scripts for building dependencies or testing 
+- [src](../src/): source code implementation
+- [tests](../tests/): unit test cases
+- [third_party](../third_party/): third party dependencies for JSON parsing, unit testing
+- [CMakeLists.txt](../CMakeLists.txt): build system configuration
+
+### Building
+- This project makes use of 2 third party dependencies:
+    - [ICU](https://unicode-org.github.io/icu/): for Unicode related support
+    - [simdjson](https://github.com/simdjson/simdjson): for parsing JSON content
+- Generate tokenizer config for any HuggingFace model:
+```bash
+cd scripts/
+python3 generate_tokenizer_files.py bert-base-uncased
+```
+This will generate a `tokenizer.json` file at path `<repository root>/data/bert-base-uncased` 
+- Build the library, unit test cases and examples:
+```bash
+mkdir build && cd build
+cmake .. && make
+```
+- Run the examples:
+```bash
+./examples/sample ../data/bert-base-uncased 'The goal of the life is [MASK]'
+```
+- Run unit test cases:
+```bash
+ctest --output-on-failure
+```
+
+### Testing
+This project makes use of [GoogleTest](https://github.com/google/googletest) for unit testing. 
+The test cases are seperated from source code in the [tests/](../tests/) directory.
