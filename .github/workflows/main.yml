@@ -1,0 +1,35 @@
+name: tokenizers.cpp CI
+on:
+  push:
+    branches:    
+      - master
+  pull_request:
+    branches:
+      - master
+  release:
+    types: [published]
+env:
+  ICU_MAJOR_VERSION: 75
+  ICU_MINOR_VERSION: 1
+jobs:
+  ci:
+    name: Integration Check
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Git Checkout
+        uses: actions/checkout@v4
+      - name: Install Dependencies
+        run: |
+          wget "https://github.com/unicode-org/icu/releases/download/release-${ICU_MAJOR_VERSION}-${ICU_MINOR_VERSION}/icu4c-${ICU_MAJOR_VERSION}_${ICU_MINOR_VERSION}-Ubuntu22.04-x64.tgz"
+          sudo mkdir -p /usr/local/opt/icu4c
+          sudo tar zxvf "icu4c-${ICU_MAJOR_VERSION}_${ICU_MINOR_VERSION}-Ubuntu22.04-x64.tgz" -C /usr/local/opt/icu4c ./icu/usr/local/ --strip-components=4
+          pip install cpplint
+      - name: Run Lint
+        run: cpplint --recursive include/ src/ tests/
+      - name: Run Build
+        run: |
+          cmake .
+          make
+      - name: Run Tests
+        run: |
+          ctest --output-on-failure
