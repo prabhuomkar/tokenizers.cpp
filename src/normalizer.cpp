@@ -241,13 +241,16 @@ void NormalizedString::transform(int i, std::string op, int n) {
 NFD::NFD() {}
 
 NormalizedString NFD::normalize(NormalizedString normalized) const {
-  // TODO(omkar): Handle errors
   UErrorCode status = U_ZERO_ERROR;
   icu::UnicodeString unicode_normalized = icu::UnicodeString::fromUTF32(
       reinterpret_cast<const UChar32*>(normalized.normalized.c_str()),
       normalized.normalized.length());
   icu::Normalizer::normalize(unicode_normalized, UNORM_NFD, 0,
                              unicode_normalized, status);
+  if (U_FAILURE(status)) {
+    throw std::runtime_error("ICU normalization failed with error code: " +
+                             std::to_string(status));
+  }
   std::wstring result;
   result.resize(unicode_normalized.countChar32());
   unicode_normalized.toUTF32(reinterpret_cast<UChar32*>(&result[0]),

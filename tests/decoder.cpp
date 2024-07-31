@@ -26,3 +26,28 @@ TEST(WordPieceDecoderTest, Simple) {
                                        "o",      " No",  "guera"};
   EXPECT_EQ(expected, got);
 }
+
+TEST(WordPieceDecoderTest, Cleanup) {
+  std::unique_ptr<Decoder> decoder = get_decoder_from_string(
+      "{\"type\":\"WordPiece\",\"prefix\":\"##\",\"cleanup\":true}");
+  EXPECT_NE(decoder, nullptr);
+  std::vector<std::string> input = {"##uelo", "Ara ?", "##új",
+                                    "##o",    "No .",  "##guera"};
+  std::vector<std::string> got = decoder->decode_chain(input);
+  std::vector<std::string> expected = {"##uelo", " Ara?", "új",
+                                       "o",      " No.",  "guera"};
+  EXPECT_EQ(expected, got);
+}
+
+TEST(SequenceDecoderTest, Simple) {
+  std::unique_ptr<Decoder> decoder = get_decoder_from_string(
+      "{\"type\":\"Sequence\",\"decoders\":[{\"type\":\"WordPiece\",\"prefix\":"
+      "\"##\",\"cleanup\":true}]}");
+  EXPECT_NE(decoder, nullptr);
+  std::vector<std::string> input = {"##uelo", "Ara", "##új",
+                                    "##o",    "No",  "##guera"};
+  std::vector<std::string> got = decoder->decode_chain(input);
+  std::vector<std::string> expected = {"##uelo", " Ara", "új",
+                                       "o",      " No",  "guera"};
+  EXPECT_EQ(expected, got);
+}

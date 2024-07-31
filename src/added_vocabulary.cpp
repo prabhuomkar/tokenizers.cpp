@@ -97,19 +97,23 @@ void AddedVocabulary::refresh_added_tokens(Model* model,
                                            Normalizer* normalizer) {
   std::vector<std::pair<AddedToken, int>> normalized, non_normalized;
   for (auto token : special_tokens) {
-    int id = model->token_to_id(token.content).value();
-    if (token.normalized) {
-      normalized.push_back({token, id});
-    } else {
-      non_normalized.push_back({token, id});
+    auto id = model->token_to_id(token.content);
+    if (id.has_value()) {
+      if (token.normalized) {
+        normalized.push_back({token, id.value()});
+      } else {
+        non_normalized.push_back({token, id.value()});
+      }
     }
   }
   for (auto token : added_tokens) {
-    int id = model->token_to_id(token.content).value();
-    if (token.normalized) {
-      normalized.push_back({token, id});
-    } else {
-      non_normalized.push_back({token, id});
+    auto id = model->token_to_id(token.content);
+    if (id.has_value()) {
+      if (token.normalized) {
+        normalized.push_back({token, id.value()});
+      } else {
+        non_normalized.push_back({token, id.value()});
+      }
     }
   }
 

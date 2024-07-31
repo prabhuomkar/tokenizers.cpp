@@ -21,64 +21,80 @@
 #include "tokenizers/utils.h"
 
 Tokenizer::Tokenizer(std::string path, std::string config) {
+  if (path.length() == 0 && config.length() == 0) {
+    throw std::invalid_argument(
+        "Requires path or config for initializing a tokenizer!");
+  }
+
   simdjson::ondemand::parser parser;
   simdjson::padded_string tokenizer_json_str;
-  if (path.length() != 0) {
-    tokenizer_json_str =
-        simdjson::padded_string::load(path + "/tokenizer.json");
-  } else {
-    tokenizer_json_str = simdjson::padded_string(config);
-  }
-  simdjson::ondemand::document tokenizer_json =
-      parser.iterate(tokenizer_json_str);
 
-  if (!tokenizer_json["truncation"].is_null()) {
-    simdjson::ondemand::object truncation_params =
-        tokenizer_json["truncation"].get_object();
-    truncation = with_truncation(truncation_params);
-  }
-  if (!tokenizer_json["padding"].is_null()) {
-    simdjson::ondemand::object padding_params =
-        tokenizer_json["padding"].get_object();
-    padding = with_padding(padding_params);
-  }
-  if (!tokenizer_json["added_tokens"].is_null()) {
-    simdjson::ondemand::array added_tokens_params =
-        tokenizer_json["added_tokens"].get_array();
-    added_vocabulary = with_added_vocabulary(added_tokens_params);
+  try {
+    if (path.length() != 0) {
+      tokenizer_json_str =
+          simdjson::padded_string::load(path + "/tokenizer.json");
+    } else {
+      tokenizer_json_str = simdjson::padded_string(config);
+    }
+    simdjson::ondemand::document tokenizer_json =
+        parser.iterate(tokenizer_json_str);
+
+    if (!tokenizer_json["truncation"].is_null()) {
+      simdjson::ondemand::object truncation_params =
+          tokenizer_json["truncation"].get_object();
+      truncation = with_truncation(truncation_params);
+    }
+    if (!tokenizer_json["padding"].is_null()) {
+      simdjson::ondemand::object padding_params =
+          tokenizer_json["padding"].get_object();
+      padding = with_padding(padding_params);
+    }
+    if (!tokenizer_json["added_tokens"].is_null()) {
+      simdjson::ondemand::array added_tokens_params =
+          tokenizer_json["added_tokens"].get_array();
+      added_vocabulary = with_added_vocabulary(added_tokens_params);
+    }
+
+    if (!tokenizer_json["normalizer"].is_null()) {
+      simdjson::ondemand::object normalizer_params =
+          tokenizer_json["normalizer"].value();
+      normalizer = with_normalizer(normalizer_params);
+    }
+    if (!tokenizer_json["pre_tokenizer"].is_null()) {
+      simdjson::ondemand::object pre_tokenizer_params =
+          tokenizer_json["pre_tokenizer"].value();
+      pre_tokenizer = with_pre_tokenizer(pre_tokenizer_params);
+    }
+    if (!tokenizer_json["model"].is_null()) {
+      simdjson::ondemand::object model_params = tokenizer_json["model"].value();
+      model = with_model(model_params);
+    }
+    if (!tokenizer_json["decoder"].is_null()) {
+      simdjson::ondemand::object decoder_params =
+          tokenizer_json["decoder"].value();
+      decoder = with_decoder(decoder_params);
+    }
+    if (!tokenizer_json["post_processor"].is_null()) {
+      simdjson::ondemand::object post_processor_params =
+          tokenizer_json["post_processor"].value();
+      post_processor = with_post_processor(post_processor_params);
+    }
+  } catch (const std::exception& e) {
+    throw std::runtime_error("Error parsing tokenizer config");
   }
 
-  if (!tokenizer_json["normalizer"].is_null()) {
-    simdjson::ondemand::object normalizer_params =
-        tokenizer_json["normalizer"].value();
-    normalizer = with_normalizer(normalizer_params);
+  if (added_vocabulary != nullptr) {
+    add_tokens(added_vocabulary->added_tokens);
   }
-  if (!tokenizer_json["pre_tokenizer"].is_null()) {
-    simdjson::ondemand::object pre_tokenizer_params =
-        tokenizer_json["pre_tokenizer"].value();
-    pre_tokenizer = with_pre_tokenizer(pre_tokenizer_params);
-  }
-  if (!tokenizer_json["model"].is_null()) {
-    simdjson::ondemand::object model_params = tokenizer_json["model"].value();
-    model = with_model(model_params);
-  }
-  if (!tokenizer_json["decoder"].is_null()) {
-    simdjson::ondemand::object decoder_params =
-        tokenizer_json["decoder"].value();
-    decoder = with_decoder(decoder_params);
-  }
-  if (!tokenizer_json["post_processor"].is_null()) {
-    simdjson::ondemand::object post_processor_params =
-        tokenizer_json["post_processor"].value();
-    post_processor = with_post_processor(post_processor_params);
-  }
-
-  add_tokens(added_vocabulary->added_tokens);
 }
 
 Encoding Tokenizer::encode(std::wstring sequence, bool add_special_tokens) {
   PreTokenizedString pre_tokenized =
-      added_vocabulary->extract_and_normalize(normalizer.get(), sequence);
+      PreTokenizedString(NormalizedString(sequence));
+  if (added_vocabulary != nullptr) {
+    pre_tokenized =
+        added_vocabulary->extract_and_normalize(normalizer.get(), sequence);
+  }
   if (pre_tokenizer != nullptr) {
     pre_tokenized = pre_tokenizer->pre_tokenize(pre_tokenized);
   }
@@ -144,7 +160,9 @@ Encoding into_encoding(PreTokenizedString pre_tokenized,
 
 Encoding Tokenizer::do_tokenize(PreTokenizedString pre_tokenized,
                                 std::optional<int> word_idx, int type_id) {
-  pre_tokenized = model->tokenize(pre_tokenized);
+  if (model != nullptr) {
+    pre_tokenized = model->tokenize(pre_tokenized);
+  }
   return into_encoding(pre_tokenized, word_idx, type_id);
 }
 

@@ -31,7 +31,7 @@ This section will provide information about the [Tokenizer components](https://h
 ### PostProcessor
 | **Name** | [RobertaProcessing] | [BertProcessing] | [ByteLevelProcessing] | [TemplateProcessing] | [SequenceProcessing] | 
 | - | - | - | - | - | - |
-| **Status** | 🚧 | ✅ | 🚧 | 🚧 | ✅ |
+| **Status** | 🚧 | ✅ | 🚧 | 🚧 | 🚧 |
 
 ### Decoder
 | **Name** | [BPEDecoder] | [ByteLevelDecoder] | [WordPieceDecoder] | [MetaspaceDecoder] | [CTC] | [SequenceDecoder] | [ReplaceDecoder] | [Fuse] | [StripDecoder] | [ByteFallbackDecoder] |

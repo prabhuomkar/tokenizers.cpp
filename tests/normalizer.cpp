@@ -82,6 +82,18 @@ TEST(NFDNormalizerTest, Simple) {
   EXPECT_EQ(L"Héllo World!", normalized.normalized);
 }
 
+TEST(NFDNormalizerTest, Error) {
+  std::unique_ptr<Normalizer> normalizer =
+      get_normalizer_from_string("{\"type\":\"NFD\"}");
+  EXPECT_NE(normalizer, nullptr);
+  EXPECT_THROW(
+      {
+        auto normalized = normalizer->normalize(
+            NormalizedString(convert_from_string("invalid\xFF")));
+      },
+      std::runtime_error);
+}
+
 TEST(ReplaceNormalizerTest, ReplaceContent) {
   std::unique_ptr<Normalizer> normalizer = get_normalizer_from_string(
       "{\"type\":\"Replace\",\"pattern\":{\"String\":\" "
