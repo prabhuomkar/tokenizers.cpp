@@ -174,7 +174,8 @@ AddedVocabulary::find_matches(
     if (word_ids.count(sub_sentence) > 0) {
       matches.push_back({start, i, word_ids[sub_sentence]});
       start = i;
-    } else if (unicode_sentence[i] == ' ') {
+    }
+    if (unicode_sentence[i] == ' ') {
       start = i + 1;
     }
     i++;
