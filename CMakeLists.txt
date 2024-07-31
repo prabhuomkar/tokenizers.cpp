@@ -21,6 +21,10 @@ set(SOURCES
 
 add_library(tokenizers SHARED ${SOURCES})
 
+set_target_properties(tokenizers PROPERTIES
+  LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+)
+
 target_include_directories(tokenizers
   PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/simdjson/include
@@ -34,9 +38,15 @@ install(TARGETS tokenizers
         RUNTIME DESTINATION bin)
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/ DESTINATION include)
 
-add_subdirectory(examples/run)
-add_subdirectory(examples/libtorch-bert)
-add_subdirectory(third_party/googletest)
+if(BUILD_EXAMPLES STREQUAL "ON")
+  message(STATUS "Building Examples")
+  add_subdirectory(examples/run)
+  add_subdirectory(examples/libtorch-bert)
+endif()
 
-enable_testing()
-add_subdirectory(tests)
+if(BUILD_TESTS STREQUAL "ON")
+  message(STATUS "Building Tests")
+  add_subdirectory(third_party/googletest)
+  enable_testing()
+  add_subdirectory(tests)
+endif()
