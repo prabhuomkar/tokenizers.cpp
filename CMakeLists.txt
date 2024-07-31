@@ -6,6 +6,8 @@ set(CMAKE_CXX_STANDARD 17)
 
 find_package(ICU REQUIRED COMPONENTS uc i18n)
 
+include_directories(${ICU_INCLUDE_DIRS})
+
 set(SOURCES
   src/added_vocabulary.cpp
   src/tokenizer.cpp
@@ -31,6 +33,8 @@ target_include_directories(tokenizers
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/simdjson/src
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
+
+target_link_libraries(tokenizers ${ICU_LIBRARIES})
 
 install(TARGETS tokenizers
         ARCHIVE DESTINATION lib

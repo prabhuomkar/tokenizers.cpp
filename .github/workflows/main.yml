@@ -11,24 +11,66 @@ on:
 env:
   ICU_MAJOR_VERSION: 75
   ICU_MINOR_VERSION: 1
+  LIBTORCH_VERSION: 2.4.0
 jobs:
-  ci:
-    name: Integration Check
-    runs-on: ubuntu-22.04
+  ci-ubuntu:
+    name: CI for Ubuntu
+    runs-on: ubuntu-24.04
     steps:
       - name: Git Checkout
         uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Set up CMake
+        uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: '3.22.1'
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       - name: Install Dependencies
         run: |
-          wget "https://github.com/unicode-org/icu/releases/download/release-${ICU_MAJOR_VERSION}-${ICU_MINOR_VERSION}/icu4c-${ICU_MAJOR_VERSION}_${ICU_MINOR_VERSION}-Ubuntu22.04-x64.tgz"
-          sudo mkdir -p /usr/local/opt/icu4c
-          sudo tar zxvf "icu4c-${ICU_MAJOR_VERSION}_${ICU_MINOR_VERSION}-Ubuntu22.04-x64.tgz" -C /usr/local/opt/icu4c ./icu/usr/local/ --strip-components=4
+          sudo apt-get update
+          sudo apt-get install -y libicu-dev
+          wget "https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-${LIBTORCH_VERSION}%2Bcpu.zip" && unzip libtorch-cxx11-abi-shared-with-deps-${LIBTORCH_VERSION}+cpu.zip -d examples/libtorch-bert
           pip install cpplint
       - name: Run Lint
         run: cpplint --recursive include/ src/ tests/
       - name: Run Build
         run: |
-          cmake .
+          cmake -DBUILD_EXAMPLES=ON -DBUILD_TESTS=ON .
+          make
+      - name: Run Tests
+        run: |
+          ctest --output-on-failure
+  ci-macos:
+    name: CI for macOS
+    runs-on: macos-14
+    steps:
+      - name: Git Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Set up CMake
+        uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: '3.22.1'
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Dependencies
+        run: |
+          brew install icu4c
+          wget "https://download.pytorch.org/libtorch/cpu/libtorch-macos-arm64-${LIBTORCH_VERSION}.zip" && unzip libtorch-macos-arm64-${LIBTORCH_VERSION}.zip -d examples/libtorch-bert
+          pip install cpplint
+      - name: Run Lint
+        run: cpplint --recursive include/ src/ tests/
+      - name: Run Build
+        run: |
+          export ICU_PREFIX=$(brew --prefix icu4c)
+          cmake -DICU_ROOT=$ICU_PREFIX -DBUILD_EXAMPLES=ON -DBUILD_TESTS=ON .
           make
       - name: Run Tests
         run: |
