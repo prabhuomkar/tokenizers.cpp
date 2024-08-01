@@ -26,8 +26,8 @@ class SpecialToken {
   std::vector<int> ids;
   std::vector<std::string> tokens;
   SpecialToken();
-  SpecialToken(std::string id, std::vector<int> ids,
-               std::vector<std::string> tokens);
+  SpecialToken(const std::string& id, const std::vector<int>& ids,
+               const std::vector<std::string>& tokens);
 };
 
 class Piece {
@@ -49,9 +49,9 @@ std::unique_ptr<PostProcessor> with_post_processor(
 
 class TemplateProcessing : public PostProcessor {
  public:
-  TemplateProcessing(std::vector<std::pair<std::string, Piece>> single,
-                     std::vector<std::pair<std::string, Piece>> pair,
-                     std::vector<SpecialToken> special_tokens);
+  TemplateProcessing(const std::vector<std::pair<std::string, Piece>>& single,
+                     const std::vector<std::pair<std::string, Piece>>& pair,
+                     const std::vector<SpecialToken>& special_tokens);
   Encoding process(Encoding encoding, bool add_special_tokens) const override;
 
  private:

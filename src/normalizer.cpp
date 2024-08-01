@@ -9,6 +9,7 @@
 #include <functional>
 #include <iostream>
 #include <memory>
+#include <numeric>
 #include <optional>
 #include <regex>
 #include <string>
@@ -59,8 +60,8 @@ NormalizedString::NormalizedString(std::wstring normalized)
   }
 }
 
-NormalizedString::NormalizedString(std::wstring normalized,
-                                   std::vector<std::pair<int, int>> offsets)
+NormalizedString::NormalizedString(
+    std::wstring normalized, const std::vector<std::pair<int, int>>& offsets)
     : normalized(normalized), offsets(offsets) {}
 
 std::unique_ptr<Normalizer> with_normalizer(
@@ -69,11 +70,12 @@ std::unique_ptr<Normalizer> with_normalizer(
   std::string type = std::string(
       static_cast<std::string_view>(normalizer_params["type"].get_string()));
   if (get_normalizer(type) == SEQUENCE_NORMALIZER) {
-    simdjson::ondemand::array seq_normalizers_params =
+    simdjson::ondemand::array seq_normalizers_list =
         normalizer_params["normalizers"].get_array();
     std::vector<std::unique_ptr<Normalizer>> seq_normalizers;
-    for (simdjson::ondemand::value val : seq_normalizers_params) {
-      simdjson::ondemand::object seq_normalizer_params = val.get_object();
+    for (simdjson::ondemand::value normalizer_val : seq_normalizers_list) {
+      simdjson::ondemand::object seq_normalizer_params =
+          normalizer_val.get_object();
       std::unique_ptr<Normalizer> seq_normalizer =
           with_normalizer(seq_normalizer_params);
       if (seq_normalizer != nullptr) {
@@ -190,8 +192,6 @@ void NormalizedString::transform(int i, std::string op, int n) {
     offset_ranges.erase(offset_ranges.begin() + i,
                         offset_ranges.begin() + i + 1);
   } else if (op == "pad") {
-    int start = offset_ranges[i].first;
-    int limit = offset_ranges[i].second;
     std::pair<int, int> offset = offsets[start];
     std::vector<std::pair<int, int>> new_offsets(2, offset);
     offsets.insert(offsets.begin() + start, new_offsets.begin(),
@@ -206,20 +206,14 @@ void NormalizedString::transform(int i, std::string op, int n) {
           offset_ranges[j - 1].first + offset_ranges[j - 1].second;
     }
   } else if (op == "grow") {
-    int start = offset_ranges[i].first;
-    int limit = offset_ranges[i].second;
     std::vector<std::pair<int, int>> new_offset_ranges = {{start, 1},
                                                           {start + 1, 1}};
     offset_ranges.erase(offset_ranges.begin() + i);
     offset_ranges.insert(offset_ranges.begin() + i, new_offset_ranges.begin(),
                          new_offset_ranges.end());
   } else if (op == "shrink") {
-    int start = offset_ranges[i].first;
-    int limit = offset_ranges[i].second;
     offset_ranges.erase(offset_ranges.begin() + i);
   } else if (op == "add" || op == "replace") {
-    int start = offset_ranges[i].first;
-    int limit = offset_ranges[i].second;
     std::vector<std::pair<int, int>> new_offset_ranges = {{start, n}};
     if (op == "add") {
       new_offset_ranges.push_back({start + n, limit});
@@ -328,8 +322,7 @@ bool is_chinese_char(wchar_t c) {
          (c >= 0xF900 && c <= 0xFAFF) || (c >= 0x2F800 && c <= 0x2FA1F);
 }
 
-NormalizedString BertNormalizer::do_clean_text(
-    NormalizedString normalized) const {
+NormalizedString BertNormalizer::do_clean_text(NormalizedString normalized) {
   std::wstring result;
   int i = 0;
   for (wchar_t c : normalized.normalized) {
@@ -349,7 +342,7 @@ NormalizedString BertNormalizer::do_clean_text(
 }
 
 NormalizedString BertNormalizer::do_handle_chinese_chars(
-    NormalizedString normalized) const {
+    NormalizedString normalized) {
   std::vector<std::pair<wchar_t, int>> new_chars;
   std::vector<int> transform_ids;
   int i = 0;
@@ -385,8 +378,7 @@ NormalizedString BertNormalizer::do_handle_chinese_chars(
   return normalized;
 }
 
-NormalizedString BertNormalizer::do_strip_accents(
-    NormalizedString normalized) const {
+NormalizedString BertNormalizer::do_strip_accents(NormalizedString normalized) {
   auto nfd_normalized = NFD().normalize(normalized);
   std::wstring result;
   int i = 0;
@@ -400,16 +392,15 @@ NormalizedString BertNormalizer::do_strip_accents(
     i++;
   }
   int multi = 0;
-  for (auto i : shrink_ids) {
-    nfd_normalized.transform(i + multi, "shrink", 0);
+  for (auto id : shrink_ids) {
+    nfd_normalized.transform(id + multi, "shrink", 0);
     multi -= 1;
   }
   nfd_normalized.normalized = result;
   return nfd_normalized;
 }
 
-NormalizedString BertNormalizer::do_lowercase(
-    NormalizedString normalized) const {
+NormalizedString BertNormalizer::do_lowercase(NormalizedString normalized) {
   std::wstring result = normalized.normalized;
   std::transform(result.begin(), result.end(), result.begin(), std::towlower);
   normalized.normalized = result;
@@ -422,23 +413,25 @@ SequenceNormalizer::SequenceNormalizer(
 
 NormalizedString SequenceNormalizer::normalize(
     NormalizedString normalized) const {
-  for (const std::unique_ptr<Normalizer>& normalizer : normalizers) {
-    normalized = normalizer->normalize(normalized);
-  }
+  normalized =
+      std::accumulate(normalizers.begin(), normalizers.end(), normalized,
+                      [](const NormalizedString& normalized,
+                         const std::unique_ptr<Normalizer>& normalizer) {
+                        return normalizer->normalize(normalized);
+                      });
   return normalized;
 }
 
-Prepend::Prepend(std::string prepend) : prepend(prepend) {}
+Prepend::Prepend(const std::string& prepend) : prepend(prepend) {}
 
 NormalizedString Prepend::normalize(NormalizedString normalized) const {
-  int start = 0, end = 0;
   std::wstring result = convert_from_string(prepend) + normalized.normalized;
   normalized.transform(0, "add", prepend.length());
   normalized.normalized = result;
   return normalized;
 }
 
-Replace::Replace(std::string pattern, std::string content)
+Replace::Replace(const std::string& pattern, const std::string& content)
     : pattern(pattern), content(content) {}
 
 NormalizedString Replace::normalize(NormalizedString normalized) const {

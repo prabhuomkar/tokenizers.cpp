@@ -34,7 +34,7 @@ class PreTokenizedString {
  public:
   NormalizedString normalized;
   std::vector<Split> splits;
-  explicit PreTokenizedString(NormalizedString normalized);
+  explicit PreTokenizedString(const NormalizedString& normalized);
   void split(std::function<bool(UChar32)> split_fn,
              SPLIT_DELIMITER_BEHAVIOR pattern);
 };

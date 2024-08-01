@@ -35,11 +35,11 @@ std::unique_ptr<Decoder> with_decoder(
   std::string type = std::string(
       static_cast<std::string_view>(decoder_params["type"].get_string()));
   if (get_decoder(type) == SEQUENCE_DECODER) {
-    simdjson::ondemand::array seq_decoder_params =
+    simdjson::ondemand::array seq_decoder_params_list =
         decoder_params["decoders"].get_array();
     std::vector<std::unique_ptr<Decoder>> seq_decoders;
-    for (simdjson::ondemand::value val : seq_decoder_params) {
-      simdjson::ondemand::object seq_decoder_params = val.get_object();
+    for (simdjson::ondemand::value decoder_val : seq_decoder_params_list) {
+      simdjson::ondemand::object seq_decoder_params = decoder_val.get_object();
       std::unique_ptr<Decoder> seq_decoder = with_decoder(seq_decoder_params);
       if (seq_decoder != nullptr) {
         seq_decoders.push_back(std::move(seq_decoder));
@@ -142,7 +142,8 @@ std::vector<std::string> WordPieceDecoder::decode_chain(
   return result;
 }
 
-ReplaceDecoder::ReplaceDecoder(std::string pattern, std::string content)
+ReplaceDecoder::ReplaceDecoder(const std::string& pattern,
+                               const std::string& content)
     : pattern(pattern), content(content) {}
 
 std::vector<std::string> ReplaceDecoder::decode_chain(
@@ -164,7 +165,7 @@ std::vector<std::string> FuseDecoder::decode_chain(
   return {};
 }
 
-StripDecoder::StripDecoder(std::string content, int start, int stop)
+StripDecoder::StripDecoder(const std::string& content, int start, int stop)
     : content(content), start(start), stop(stop) {}
 
 std::vector<std::string> StripDecoder::decode_chain(

@@ -20,7 +20,7 @@
 #include "tokenizers/pre_tokenizer.h"
 #include "tokenizers/utils.h"
 
-Tokenizer::Tokenizer(std::string path, std::string config) {
+Tokenizer::Tokenizer(const std::string& path, const std::string& config) {
   if (path.length() == 0 && config.length() == 0) {
     throw std::invalid_argument(
         "Requires path or config for initializing a tokenizer!");
@@ -88,7 +88,8 @@ Tokenizer::Tokenizer(std::string path, std::string config) {
   }
 }
 
-Encoding Tokenizer::encode(std::wstring sequence, bool add_special_tokens) {
+Encoding Tokenizer::encode(const std::wstring& sequence,
+                           bool add_special_tokens) {
   PreTokenizedString pre_tokenized =
       PreTokenizedString(NormalizedString(sequence));
   if (added_vocabulary != nullptr) {
@@ -102,7 +103,8 @@ Encoding Tokenizer::encode(std::wstring sequence, bool add_special_tokens) {
   return do_post_process(encoding, add_special_tokens);
 }
 
-std::string Tokenizer::decode(std::vector<int> ids, bool skip_special_tokens) {
+std::string Tokenizer::decode(const std::vector<int>& ids,
+                              bool skip_special_tokens) {
   std::vector<std::string> tokens;
   for (int id : ids) {
     std::string token = "";
@@ -120,11 +122,11 @@ std::string Tokenizer::decode(std::vector<int> ids, bool skip_special_tokens) {
   return std::accumulate(tokens.begin(), tokens.end(), std::string{});
 }
 
-int Tokenizer::add_tokens(std::vector<AddedToken> tokens) {
+int Tokenizer::add_tokens(const std::vector<AddedToken>& tokens) {
   return added_vocabulary->add_tokens(tokens, model.get(), normalizer.get());
 }
 
-int Tokenizer::add_special_tokens(std::vector<AddedToken> tokens) {
+int Tokenizer::add_special_tokens(const std::vector<AddedToken>& tokens) {
   return added_vocabulary->add_special_tokens(tokens, model.get(),
                                               normalizer.get());
 }
@@ -159,7 +161,8 @@ Encoding into_encoding(PreTokenizedString pre_tokenized,
 }
 
 Encoding Tokenizer::do_tokenize(PreTokenizedString pre_tokenized,
-                                std::optional<int> word_idx, int type_id) {
+                                std::optional<int> word_idx,
+                                int type_id) const {
   if (model != nullptr) {
     pre_tokenized = model->tokenize(pre_tokenized);
   }
@@ -167,7 +170,7 @@ Encoding Tokenizer::do_tokenize(PreTokenizedString pre_tokenized,
 }
 
 Encoding Tokenizer::do_post_process(Encoding encoding,
-                                    bool add_special_tokens) {
+                                    bool add_special_tokens) const {
   if (truncation != nullptr) {
     encoding = truncation->truncate_encoding(encoding);
   }

@@ -34,8 +34,8 @@ TRUNCATION_STRATEGY get_truncation_strategy(std::string strategy) {
   return UNKNOWN_TRUNCATION_STRATEGY;
 }
 
-Truncation::Truncation(std::string direction, std::string strategy,
-                       int max_length, int stride)
+Truncation::Truncation(const std::string& direction,
+                       const std::string& strategy, int max_length, int stride)
     : direction(get_truncation_direction(direction)),
       strategy(get_truncation_strategy(strategy)),
       max_length(max_length),
@@ -66,8 +66,10 @@ Encoding truncate(Encoding encoding, int max_length, int stride,
     for (int stop = encoding.ids.size() - 1; stop >= 0; stop -= offset) {
       stop += 1;
       int start = stop < max_length ? 0 : stop - max_length;
-      end = start == 0;
-      parts_ranges.push_back({start, stop});
+      if (start < stop && !end) {
+        end = start == 0;
+        parts_ranges.push_back({start, stop});
+      }
     }
   }
   std::pair<int, int> elem = parts_ranges[0];
@@ -109,15 +111,14 @@ Encoding truncate(Encoding encoding, int max_length, int stride,
   return new_encoding;
 }
 
-Encoding Truncation::truncate_encoding(Encoding encoding) {
+Encoding Truncation::truncate_encoding(Encoding encoding) const {
   if (max_length == 0) {
     return truncate(encoding, 0, stride, direction);
   }
   if (encoding.ids.size() <= max_length) {
     return encoding;
   }
-  int to_remove =
-      encoding.ids.size() > max_length ? encoding.ids.size() - max_length : 0;
+  int to_remove = encoding.ids.size() - max_length;
   if (strategy == LONGEST_FIRST_TRUNCATION_STRATEGY) {
     encoding =
         truncate(encoding, encoding.ids.size() - to_remove, stride, direction);
@@ -178,9 +179,9 @@ PADDING_STRATEGY get_padding_strategy(std::string strategy) {
   return UNKNOWN_PADDING_STRATEGY;
 }
 
-Padding::Padding(std::string direction, std::string strategy, int fixed_size,
-                 int pad_id, int pad_type_id, std::string pad_token,
-                 int pad_to_multiple_of)
+Padding::Padding(const std::string& direction, const std::string& strategy,
+                 int fixed_size, int pad_id, int pad_type_id,
+                 const std::string& pad_token, int pad_to_multiple_of)
     : direction(get_padding_direction(direction)),
       strategy(get_padding_strategy(strategy)),
       fixed_size(fixed_size),
@@ -191,10 +192,12 @@ Padding::Padding(std::string direction, std::string strategy, int fixed_size,
 
 Encoding pad(Encoding encoding, int target_length, int pad_id, int pad_type_id,
              std::string pad_token, PADDING_DIRECTION direction) {
-  for (Encoding& overflow_encoding : encoding.overflowing) {
-    overflow_encoding = pad(overflow_encoding, target_length, pad_id,
-                            pad_type_id, pad_token, direction);
-  }
+  std::transform(encoding.overflowing.begin(), encoding.overflowing.end(),
+                 encoding.overflowing.begin(),
+                 [&](const Encoding& overflow_encoding) {
+                   return pad(overflow_encoding, target_length, pad_id,
+                              pad_type_id, pad_token, direction);
+                 });
   if (encoding.ids.size() >= target_length) {
     return encoding;
   }
@@ -224,7 +227,7 @@ Encoding pad(Encoding encoding, int target_length, int pad_id, int pad_type_id,
   return encoding;
 }
 
-Encoding Padding::pad_encoding(Encoding encoding) {
+Encoding Padding::pad_encoding(const Encoding& encoding) const {
   int pad_length =
       strategy == FIXED_PADDING_STRATEGY ? fixed_size : encoding.ids.size();
   if (pad_to_multiple_of > 0 && pad_length % pad_to_multiple_of > 0) {

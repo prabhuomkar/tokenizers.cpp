@@ -35,11 +35,10 @@ PRE_TOKENIZER get_pre_tokenizer(std::string type) {
   return UNKNOWN_PRE_TOKENIZER;
 }
 
-PreTokenizedString::PreTokenizedString(NormalizedString normalized)
-    : normalized(normalized) {
-  splits = {Split(convert_to_string(normalized.normalized),
-                  {0, normalized.normalized.length()})};
-}
+PreTokenizedString::PreTokenizedString(const NormalizedString& normalized)
+    : normalized(normalized),
+      splits({Split(convert_to_string(normalized.normalized),
+                    {0, normalized.normalized.length()})}) {}
 
 std::unique_ptr<PreTokenizer> with_pre_tokenizer(
     simdjson::ondemand::object pre_tokenizer_params) {
@@ -78,33 +77,34 @@ std::vector<Split> split_normalized(Split original_split,
   std::vector<int> matches = find_matches(unicode_normalized, split_fn);
   for (int match : matches) {
     if (unicode_normalized.tempSubStringBetween(offset, match).length() != 0) {
-      std::string split_normalized;
+      std::string split_unicode_normalized;
       unicode_normalized.tempSubStringBetween(offset, match)
-          .toUTF8String(split_normalized);
-      new_splits.push_back(
-          Split(split_normalized, {offset + original_split.offsets.first,
-                                   match + original_split.offsets.first}));
+          .toUTF8String(split_unicode_normalized);
+      new_splits.push_back(Split(split_unicode_normalized,
+                                 {offset + original_split.offsets.first,
+                                  match + original_split.offsets.first}));
     }
     switch (pattern) {
       case REMOVED:
         break;
       case ISOLATED:
-        std::string split_normalized;
+        std::string split_unicode_normalized;
         unicode_normalized.tempSubStringBetween(match, match + 1)
-            .toUTF8String(split_normalized);
-        new_splits.push_back(Split(
-            split_normalized, {match + original_split.offsets.first,
-                               match + original_split.offsets.first + +1}));
+            .toUTF8String(split_unicode_normalized);
+        new_splits.push_back(
+            Split(split_unicode_normalized,
+                  {match + original_split.offsets.first,
+                   match + original_split.offsets.first + +1}));
         break;
     }
     offset = match + 1;
   }
   if (offset <= unicode_normalized.length() - 1) {
-    std::string split_normalized;
+    std::string split_unicode_normalized;
     unicode_normalized.tempSubStringBetween(offset, unicode_normalized.length())
-        .toUTF8String(split_normalized);
+        .toUTF8String(split_unicode_normalized);
     new_splits.push_back(
-        Split(split_normalized,
+        Split(split_unicode_normalized,
               {offset + original_split.offsets.first,
                unicode_normalized.length() + original_split.offsets.first}));
   }

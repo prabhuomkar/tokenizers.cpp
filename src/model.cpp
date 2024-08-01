@@ -103,13 +103,13 @@ std::unique_ptr<Model> with_model(simdjson::ondemand::object model_params) {
   return nullptr;
 }
 
-Model::Model(std::unordered_map<std::string, int> vocab) : vocab(vocab) {
+Model::Model(const std::unordered_map<std::string, int>& vocab) : vocab(vocab) {
   for (auto pair : vocab) {
     vocab_r[pair.second] = pair.first;
   }
 }
 
-int Model::get_vocab_size() { return vocab.size(); }
+int Model::get_vocab_size() const { return vocab.size(); }
 
 std::optional<int> Model::token_to_id(std::string token) {
   auto it = vocab.find(token);
@@ -127,16 +127,16 @@ std::optional<std::string> Model::id_to_token(int id) {
   return std::nullopt;
 }
 
-WordPiece::WordPiece(std::unordered_map<std::string, int> vocab,
-                     std::string unk_token, int max_input_chars_per_word,
-                     std::string continuing_subword_prefix)
+WordPiece::WordPiece(const std::unordered_map<std::string, int>& vocab,
+                     const std::string& unk_token, int max_input_chars_per_word,
+                     const std::string& continuing_subword_prefix)
     : Model(vocab),
       unk_token(unk_token),
       max_input_chars_per_word(max_input_chars_per_word),
       continuing_subword_prefix(continuing_subword_prefix) {}
 
 PreTokenizedString WordPiece::tokenize(PreTokenizedString pre_tokenized) const {
-  for (auto &split : pre_tokenized.splits) {
+  for (auto& split : pre_tokenized.splits) {
     icu::UnicodeString unicode_sequence =
         icu::UnicodeString::fromUTF8(split.normalized);
     int char_len = unicode_sequence.length();
@@ -193,10 +193,12 @@ PreTokenizedString WordPiece::tokenize(PreTokenizedString pre_tokenized) const {
   return pre_tokenized;
 }
 
-BPE::BPE(std::unordered_map<std::string, int> vocab,
-         std::vector<std::string> merges, float dropout, std::string unk_token,
-         std::string continuing_subword_prefix, std::string end_of_word_suffix,
-         bool fuse_unk, bool byte_fallback, bool ignore_merges)
+BPE::BPE(const std::unordered_map<std::string, int>& vocab,
+         std::vector<std::string> merges, float dropout,
+         const std::string& unk_token,
+         const std::string& continuing_subword_prefix,
+         const std::string& end_of_word_suffix, bool fuse_unk,
+         bool byte_fallback, bool ignore_merges)
     : Model(vocab),
       merges(merges),
       dropout(dropout),
@@ -207,16 +209,16 @@ BPE::BPE(std::unordered_map<std::string, int> vocab,
       byte_fallback(byte_fallback),
       ignore_merges(ignore_merges) {}
 
-void BPE::merge_word(std::string word) const {}
+void BPE::merge_word(const std::string& word) {}
 
-std::vector<Token> BPE::word_to_tokens() const { return {}; }
+std::vector<Token> BPE::word_to_tokens() { return {}; }
 
-std::vector<Token> BPE::tokenize_with_cache(std::string sequence) const {
+std::vector<Token> BPE::tokenize_with_cache(const std::string& sequence) {
   return {};
 }
 
 PreTokenizedString BPE::tokenize(PreTokenizedString pre_tokenized) const {
-  for (auto &split : pre_tokenized.splits) {
+  for (auto& split : pre_tokenized.splits) {
     std::string sequence = split.normalized;
     if (dropout == 0.0f) {
       split.tokens = tokenize_with_cache(sequence);

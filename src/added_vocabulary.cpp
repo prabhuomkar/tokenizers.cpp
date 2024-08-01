@@ -16,7 +16,14 @@
 #include "tokenizers/normalizer.h"
 #include "tokenizers/pre_tokenizer.h"
 
-AddedToken::AddedToken() {}
+AddedToken::AddedToken()
+    : id(0),
+      content(""),
+      single_word(false),
+      lstrip(false),
+      rstrip(false),
+      normalized(true),
+      special(false) {}
 
 AddedToken::AddedToken(int id, std::string content, bool single_word,
                        bool lstrip, bool rstrip, bool normalized, bool special)
@@ -31,7 +38,7 @@ AddedToken::AddedToken(int id, std::string content, bool single_word,
 AddedVocabulary::AddedVocabulary(std::vector<AddedToken> added_tokens)
     : added_tokens(added_tokens), encode_special_tokens(false) {}
 
-bool AddedVocabulary::is_special_token(std::string token) {
+bool AddedVocabulary::is_special_token(const std::string& token) const {
   return special_tokens_set.count(token) > 0;
 }
 
@@ -43,8 +50,8 @@ std::optional<std::string> AddedVocabulary::id_to_token(int id) {
   return std::nullopt;
 }
 
-int AddedVocabulary::add_tokens(std::vector<AddedToken> tokens, Model* model,
-                                Normalizer* normalizer) {
+int AddedVocabulary::add_tokens(const std::vector<AddedToken>& tokens,
+                                Model* model, Normalizer* normalizer) {
   for (auto token : tokens) {
     if (token.special && !token.content.empty() &&
         special_tokens_set.count(token.content) != 1) {
@@ -171,24 +178,24 @@ AddedVocabulary::find_matches(
     word_ids[split_re.first[i]] = split_re.second[i];
   }
   icu::UnicodeString unicode_sentence = icu::UnicodeString::fromUTF8(sentence);
-  int i = 0, start = 0;
+  int i = 0, cur = 0;
   while (i < unicode_sentence.length()) {
     std::string sub_sentence;
-    unicode_sentence.tempSubString(start, i - start).toUTF8String(sub_sentence);
+    unicode_sentence.tempSubString(cur, i - cur).toUTF8String(sub_sentence);
     if (word_ids.count(sub_sentence) > 0) {
-      matches.push_back({start, i, word_ids[sub_sentence]});
-      start = i;
+      matches.push_back({cur, i, word_ids[sub_sentence]});
+      cur = i;
     }
     if (unicode_sentence[i] == ' ') {
-      start = i + 1;
+      cur = i + 1;
     }
     i++;
   }
-  if (i != start) {
+  if (i != cur) {
     std::string sub_sentence;
-    unicode_sentence.tempSubString(start, i - start).toUTF8String(sub_sentence);
+    unicode_sentence.tempSubString(cur, i - cur).toUTF8String(sub_sentence);
     if (word_ids.count(sub_sentence) > 0) {
-      matches.push_back({start, i, word_ids[sub_sentence]});
+      matches.push_back({cur, i, word_ids[sub_sentence]});
     }
   }
   std::vector<std::pair<std::optional<int>, std::pair<int, int>>> result;
@@ -230,13 +237,13 @@ AddedVocabulary::find_matches(
   return result;
 }
 
-int AddedVocabulary::add_special_tokens(std::vector<AddedToken> tokens,
+int AddedVocabulary::add_special_tokens(const std::vector<AddedToken>& tokens,
                                         Model* model, Normalizer* normalizer) {
   return add_tokens(tokens, model, normalizer);
 }
 
 PreTokenizedString AddedVocabulary::extract_and_normalize(
-    Normalizer* normalizer, std::wstring sequence) {
+    const Normalizer* normalizer, const std::wstring& sequence) {
   PreTokenizedString pre_tokenized =
       PreTokenizedString(NormalizedString(sequence));
   auto matches =
@@ -262,7 +269,7 @@ PreTokenizedString AddedVocabulary::extract_and_normalize(
 
   std::vector<Split> normalized_splits;
   int ending_idx = 0;
-  for (auto original_split : pre_tokenized.splits) {
+  for (const Split& original_split : pre_tokenized.splits) {
     if (original_split.tokens.size() > 0) {
       Split new_split = original_split;
       new_split.offsets = {ending_idx,

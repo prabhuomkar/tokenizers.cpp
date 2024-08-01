@@ -19,12 +19,14 @@
 
 class Tokenizer {
  public:
-  explicit Tokenizer(std::string path = "", std::string config = "");
+  explicit Tokenizer(const std::string& path = "",
+                     const std::string& config = "");
 
-  Encoding encode(std::wstring sequence, bool add_special_tokens = true);
-  std::string decode(std::vector<int> ids, bool skip_special_tokens = true);
-  int add_tokens(std::vector<AddedToken> tokens);
-  int add_special_tokens(std::vector<AddedToken> tokens);
+  Encoding encode(const std::wstring& sequence, bool add_special_tokens = true);
+  std::string decode(const std::vector<int>& ids,
+                     bool skip_special_tokens = true);
+  int add_tokens(const std::vector<AddedToken>& tokens);
+  int add_special_tokens(const std::vector<AddedToken>& tokens);
 
  private:
   std::string version;
@@ -38,6 +40,6 @@ class Tokenizer {
   std::unique_ptr<Decoder> decoder;
 
   Encoding do_tokenize(PreTokenizedString pre_tokenized,
-                       std::optional<int> word_idx, int type_id);
-  Encoding do_post_process(Encoding encoding, bool add_special_tokens);
+                       std::optional<int> word_idx, int type_id) const;
+  Encoding do_post_process(Encoding encoding, bool add_special_tokens) const;
 };

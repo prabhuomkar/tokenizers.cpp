@@ -8,7 +8,7 @@
 
 #include "simdjson.h"
 
-Token::Token() {}
+Token::Token() : id(0), value(""), offsets({}) {}
 
 Token::Token(int id, std::string value, std::pair<int, int> offsets)
     : id(id), value(value), offsets(offsets) {}
@@ -27,12 +27,13 @@ Encoding::Encoding()
       special_tokens_mask({}),
       attention_mask({}) {}
 
-Encoding::Encoding(std::vector<int> ids, std::vector<int> type_ids,
-                   std::vector<std::string> tokens,
-                   std::vector<std::optional<int>> words,
-                   std::vector<std::pair<int, int>> offsets,
-                   std::vector<int> special_tokens_mask,
-                   std::vector<int> attention_mask)
+Encoding::Encoding(const std::vector<int>& ids,
+                   const std::vector<int>& type_ids,
+                   const std::vector<std::string>& tokens,
+                   const std::vector<std::optional<int>>& words,
+                   const std::vector<std::pair<int, int>>& offsets,
+                   const std::vector<int>& special_tokens_mask,
+                   const std::vector<int>& attention_mask)
     : ids(ids),
       type_ids(type_ids),
       tokens(tokens),

@@ -21,7 +21,8 @@ int main(int argc, char* argv[]) {
   std::cout << "loaded the model from " << std::string(argv[1]) << std::endl;
 
   auto tokenizer = Tokenizer(std::string(argv[2]));
-  auto encoding = tokenizer.encode(L"Mumbai is a major city in [MASK].", true);
+  auto encoding =
+      tokenizer.encode(convert_from_string(std::string(argv[3])), true);
   int masked_index = -1;
   for (int i = 0; i < encoding.ids.size(); i++) {
     if (encoding.ids[i] == 103) {

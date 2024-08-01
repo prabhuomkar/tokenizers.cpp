@@ -41,9 +41,9 @@ class NormalizedString {
   std::vector<std::pair<int, int>> offset_ranges;
   explicit NormalizedString(std::wstring normalized);
   NormalizedString(std::wstring normalized,
-                   std::vector<std::pair<int, int>> offsets);
+                   const std::vector<std::pair<int, int>>& offsets);
   void transform(int i, std::string op, int n);
-  void transform_range(std::pair<int, int> offsets,
+  void transform_range(std::pair<int, int> original_offsets,
                        NormalizedString sub_normalized);
 };
 
@@ -68,15 +68,15 @@ class BertNormalizer : public Normalizer {
   bool handle_chinese_chars;
   bool strip_accents;
   bool lowercase;
-  NormalizedString do_clean_text(NormalizedString normalized) const;
-  NormalizedString do_handle_chinese_chars(NormalizedString normalized) const;
-  NormalizedString do_strip_accents(NormalizedString normalized) const;
-  NormalizedString do_lowercase(NormalizedString normalized) const;
+  static NormalizedString do_clean_text(NormalizedString normalized);
+  static NormalizedString do_handle_chinese_chars(NormalizedString normalized);
+  static NormalizedString do_strip_accents(NormalizedString normalized);
+  static NormalizedString do_lowercase(NormalizedString normalized);
 };
 
 class Prepend : public Normalizer {
  public:
-  explicit Prepend(std::string prepend);
+  explicit Prepend(const std::string& prepend);
   NormalizedString normalize(NormalizedString normalized) const override;
 
  private:
@@ -85,7 +85,7 @@ class Prepend : public Normalizer {
 
 class Replace : public Normalizer {
  public:
-  explicit Replace(std::string pattern, std::string content);
+  explicit Replace(const std::string& pattern, const std::string& content);
   NormalizedString normalize(NormalizedString normalized) const override;
 
  private:

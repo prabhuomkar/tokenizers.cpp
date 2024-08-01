@@ -18,12 +18,12 @@ class Encoding {
   std::vector<int> attention_mask;
   std::vector<Encoding> overflowing;
   Encoding();
-  Encoding(std::vector<int> ids, std::vector<int> type_ids,
-           std::vector<std::string> tokens,
-           std::vector<std::optional<int>> words,
-           std::vector<std::pair<int, int>> offsets,
-           std::vector<int> special_tokens_mask,
-           std::vector<int> attention_mask);
+  Encoding(const std::vector<int>& ids, const std::vector<int>& type_ids,
+           const std::vector<std::string>& tokens,
+           const std::vector<std::optional<int>>& words,
+           const std::vector<std::pair<int, int>>& offsets,
+           const std::vector<int>& special_tokens_mask,
+           const std::vector<int>& attention_mask);
 };
 
 class Token {

@@ -35,14 +35,14 @@ class AddedVocabulary {
  public:
   std::vector<AddedToken> added_tokens;
   explicit AddedVocabulary(std::vector<AddedToken> added_tokens);
-  int add_tokens(std::vector<AddedToken> tokens, Model* model,
+  int add_tokens(const std::vector<AddedToken>& tokens, Model* model,
                  Normalizer* normalizer);
-  int add_special_tokens(std::vector<AddedToken> tokens, Model* model,
+  int add_special_tokens(const std::vector<AddedToken>& tokens, Model* model,
                          Normalizer* normalizer);
-  bool is_special_token(std::string token);
+  bool is_special_token(const std::string& token) const;
   std::optional<std::string> id_to_token(int id);
-  PreTokenizedString extract_and_normalize(Normalizer* normalizer,
-                                           std::wstring sequence);
+  PreTokenizedString extract_and_normalize(const Normalizer* normalizer,
+                                           const std::wstring& sequence);
 
  private:
   bool encode_special_tokens;

@@ -28,8 +28,8 @@ class Model {
   virtual ~Model() = default;
   virtual PreTokenizedString tokenize(
       PreTokenizedString pre_tokenized) const = 0;
-  explicit Model(std::unordered_map<std::string, int> vocab);
-  int get_vocab_size();
+  explicit Model(const std::unordered_map<std::string, int>& vocab);
+  int get_vocab_size() const;
   std::optional<int> token_to_id(std::string token);
   std::optional<std::string> id_to_token(int id);
 };
@@ -42,13 +42,15 @@ class WordPiece : public Model {
   int max_input_chars_per_word;
   std::string continuing_subword_prefix;
   PreTokenizedString tokenize(PreTokenizedString pre_tokenized) const override;
-  WordPiece(std::unordered_map<std::string, int> vocab,
-            std::string unk_token = "[UNK]", int max_input_chars_per_word = 100,
-            std::string continuing_subword_prefix = "##");
+  explicit WordPiece(const std::unordered_map<std::string, int>& vocab,
+                     const std::string& unk_token = "[UNK]",
+                     int max_input_chars_per_word = 100,
+                     const std::string& continuing_subword_prefix = "##");
 };
 
 class BPE : public Model {
  public:
+  std::vector<std::string> merges;
   float dropout;
   std::string unk_token;
   std::string continuing_subword_prefix;
@@ -56,15 +58,16 @@ class BPE : public Model {
   bool fuse_unk;
   bool byte_fallback;
   bool ignore_merges;
-  std::vector<std::string> merges;
   PreTokenizedString tokenize(PreTokenizedString pre_tokenized) const override;
-  BPE(std::unordered_map<std::string, int> vocab,
-      std::vector<std::string> merges, float dropout, std::string unk_token,
-      std::string continuing_subword_prefix, std::string end_of_word_suffix,
-      bool fuse_unk, bool byte_fallback, bool ignore_merges);
+  explicit BPE(const std::unordered_map<std::string, int>& vocab,
+               std::vector<std::string> merges, float dropout,
+               const std::string& unk_token,
+               const std::string& continuing_subword_prefix,
+               const std::string& end_of_word_suffix, bool fuse_unk,
+               bool byte_fallback, bool ignore_merges);
 
  private:
-  void merge_word(std::string word) const;
-  std::vector<Token> word_to_tokens() const;
-  std::vector<Token> tokenize_with_cache(std::string sequence) const;
+  static void merge_word(const std::string& word);
+  static std::vector<Token> word_to_tokens();
+  static std::vector<Token> tokenize_with_cache(const std::string& sequence);
 };

@@ -100,16 +100,17 @@ For setting up the developer environment you will need following installed:
 - [Common Sense](https://en.wikipedia.org/wiki/Common_sense): essential for working with C++
 
 ### Directory Structure
-- [android](../android/): related to Android library using C++ native
-- [docs](../docs/): markdown files for providing navigation to the visitors
-- [examples](../examples/): cross-platform and basic demos 
-- [include](../include/): header files
-- [ios](../ios/): related to iOS library
-- [scripts](../scripts/): basic scripts for building dependencies or testing 
-- [src](../src/): source code implementation
-- [tests](../tests/): unit test cases
-- [third_party](../third_party/): third party dependencies for JSON parsing, unit testing
-- [CMakeLists.txt](../CMakeLists.txt): build system configuration
+
+├── [android](../android/): related to Android library using C++ native
+├── [CMakeLists.txt](../CMakeLists.txt): build system configuration  
+├── [docs](../docs/): markdown files for providing navigation to the visitors  
+├── [examples](../examples/): cross-platform and basic demos  
+├── [include](../include/): header files  
+├── [ios](../ios/): related to iOS library  
+├── [scripts](../scripts/): basic scripts for building dependencies or testing  
+├── [src](../src/): source code implementation  
+├── [tests](../tests/): unit test cases  
+└── [third_party](../third_party/): third party dependencies for JSON parsing, unit testing  
 
 ### Building
 - This project makes use of 2 third party dependencies:
@@ -130,11 +131,11 @@ cmake .. && make
 ```bash
 ./examples/sample ../data/bert-base-uncased 'The goal of the life is [MASK]'
 ```
+
+### Testing
+This project makes use of [GoogleTest](https://github.com/google/googletest) for unit testing. 
+The test cases are seperated from source code in the [tests/](../tests/) directory.  
 - Run unit test cases:
 ```bash
 ctest --output-on-failure
 ```
-
-### Testing
-This project makes use of [GoogleTest](https://github.com/google/googletest) for unit testing. 
-The test cases are seperated from source code in the [tests/](../tests/) directory.

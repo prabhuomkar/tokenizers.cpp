@@ -1,6 +1,7 @@
 // Copyright 2024 Omkar Prabhu
 #include "tokenizers/post_processor.h"
 
+#include <algorithm>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -25,8 +26,8 @@ POST_PROCESSOR get_post_processor(std::string type) {
 
 SpecialToken::SpecialToken() {}
 
-SpecialToken::SpecialToken(std::string id, std::vector<int> ids,
-                           std::vector<std::string> tokens)
+SpecialToken::SpecialToken(const std::string& id, const std::vector<int>& ids,
+                           const std::vector<std::string>& tokens)
     : id(id), ids(ids), tokens(tokens) {}
 
 Piece::Piece(std::string id, int type_id) : id(id), type_id(type_id) {}
@@ -44,7 +45,7 @@ std::unique_ptr<PostProcessor> with_post_processor(
       for (auto element : single_array) {
         simdjson::ondemand::object map_piece = element.get_object().value();
         for (auto field : map_piece) {
-          std::string type =
+          type =
               std::string(static_cast<std::string_view>(field.escaped_key()));
           val = field.value();
           std::string id = std::string(
@@ -61,7 +62,7 @@ std::unique_ptr<PostProcessor> with_post_processor(
       for (auto element : pair_array) {
         simdjson::ondemand::object map_piece = element.get_object().value();
         for (auto field : map_piece) {
-          std::string type =
+          type =
               std::string(static_cast<std::string_view>(field.escaped_key()));
           val = field.value();
           std::string id = std::string(
@@ -102,9 +103,9 @@ std::unique_ptr<PostProcessor> with_post_processor(
 }
 
 TemplateProcessing::TemplateProcessing(
-    std::vector<std::pair<std::string, Piece>> single,
-    std::vector<std::pair<std::string, Piece>> pair,
-    std::vector<SpecialToken> special_tokens)
+    const std::vector<std::pair<std::string, Piece>>& single,
+    const std::vector<std::pair<std::string, Piece>>& pair,
+    const std::vector<SpecialToken>& special_tokens)
     : single(single), pair(pair), special_tokens(special_tokens) {}
 
 Encoding TemplateProcessing::process(Encoding encoding,
@@ -123,10 +124,13 @@ Encoding TemplateProcessing::process(Encoding encoding,
       if (add_special_tokens) {
         Encoding new_encoding;
         SpecialToken special_token;
-        for (SpecialToken special_token_it : special_tokens) {
-          if (special_token_it.id == piece.second.id) {
-            special_token = special_token_it;
-          }
+        auto it = std::find_if(special_tokens.begin(), special_tokens.end(),
+                               [&piece](const SpecialToken& special_token_it) {
+                                 return special_token_it.id == piece.second.id;
+                               });
+
+        if (it != special_tokens.end()) {
+          special_token = *it;
         }
         new_encoding.ids = special_token.ids;
         new_encoding.tokens = special_token.tokens;

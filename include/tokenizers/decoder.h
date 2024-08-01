@@ -46,7 +46,8 @@ class WordPieceDecoder : public Decoder {
 
 class ReplaceDecoder : public Decoder {
  public:
-  explicit ReplaceDecoder(std::string pattern, std::string content);
+  explicit ReplaceDecoder(const std::string& pattern,
+                          const std::string& content);
   std::vector<std::string> decode_chain(
       std::vector<std::string> tokens) const override;
 
@@ -71,7 +72,7 @@ class FuseDecoder : public Decoder {
 
 class StripDecoder : public Decoder {
  public:
-  explicit StripDecoder(std::string content, int start, int stop);
+  explicit StripDecoder(const std::string& content, int start, int stop);
   std::vector<std::string> decode_chain(
       std::vector<std::string> tokens) const override;
 
