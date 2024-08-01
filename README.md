@@ -6,10 +6,10 @@ Tokenizers in C++
 - Designed for production applications e.g. [Android](android/), [iOS](ios/), [ggml]()
 
 ## Examples
-- [LibTorch]()
+- [LibTorch](./examples/libtorch-bert/)
 - [ggml]()
-- [Android App]()
-- [iOS App]()
+- [Android App](./android/)
+- [iOS App](./ios/)
 
 ## Documentation
 [tokenizers.cpp documentation](docs/README.md) is bundled with the source code.

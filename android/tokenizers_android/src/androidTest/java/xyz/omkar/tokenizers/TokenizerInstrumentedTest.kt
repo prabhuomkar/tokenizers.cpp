@@ -8,7 +8,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 
-private const val FILE_NAME = "bert-base-uncased.json"
+private const val FILE_NAME = "mobilebert-uncased.json"
 private val EXPECTED_ENCODED = intArrayOf(101, 1855, 100, 100, 1817, 100, 1746, 1861, 1636, 9353, 18100, 2099, 1041, 9986, 2063, 1012, 102)
 private val EXPECTED_DECODED = "我 学 中 文 。 acucar e doce."
 
