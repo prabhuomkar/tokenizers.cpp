@@ -101,7 +101,7 @@ For setting up the developer environment you will need following installed:
 
 ### Directory Structure
 
-├── [android](../android/): related to Android library using C++ native
+├── [android](../android/): related to Android library using C++ native  
 ├── [CMakeLists.txt](../CMakeLists.txt): build system configuration  
 ├── [docs](../docs/): markdown files for providing navigation to the visitors  
 ├── [examples](../examples/): cross-platform and basic demos  
