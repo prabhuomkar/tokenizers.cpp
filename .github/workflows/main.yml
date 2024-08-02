@@ -1,6 +1,12 @@
 name: tokenizers.cpp CI
 on:
   push:
+    paths-ignore:
+      - .gitignore
+      - .clang-format
+      - *.md
+      - LICENSE
+      - docs/*
     branches:    
       - master
   pull_request:
