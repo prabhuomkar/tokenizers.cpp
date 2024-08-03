@@ -1,5 +1,7 @@
-# tokenizers.cpp
-Tokenizers in C++
+<p align="center"><img src="docs/logo.jpg" width="128px"></p>
+
+<h1 align="center">tokenizers.cpp</h1>
+<p align="center">Tokenizers in C++</p>
 
 ## Features
 - Easy to use tokenizers library in C++ based on HuggingFace's `tokenizer.json` config.
