@@ -34,3 +34,5 @@ google-services.json
 
 # Others
 .DS_Store
+*.pt
+*.ptl

@@ -1,5 +1,5 @@
 plugins {
-    alias(libs.plugins.android.application)
+    alias(libs.plugins.android.library)
     alias(libs.plugins.jetbrains.kotlin.android)
 }
 
@@ -8,11 +8,8 @@ android {
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "xyz.omkar.tokenizers"
         minSdk = 26
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         externalNativeBuild {

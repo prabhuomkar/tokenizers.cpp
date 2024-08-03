@@ -3,12 +3,12 @@ Tokenizers in C++
 
 ## Features
 - Easy to use tokenizers library in C++ based on HuggingFace's `tokenizer.json` config.
-- Designed for production applications e.g. [Android](android/), [iOS](ios/), [ggml]()
+- Designed for production applications e.g. Android, iOS, ggml based models
 
 ## Examples
 - [LibTorch](./examples/libtorch-bert/)
 - [ggml]()
-- [Android App](./android/)
+- [Android App](./android/app/)
 - [iOS App](./ios/)
 
 ## Documentation
