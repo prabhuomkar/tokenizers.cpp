@@ -24,6 +24,7 @@ enum PRE_TOKENIZER {
   UNICODE_SCRIPTS_PRE_TOKENIZER,
   WHITESPACE_PRE_TOKENIZER,
   WHITESPACE_SPLIT_PRE_TOKENIZER,
+  SEQUENCE_PRE_TOKENIZER,
   UNKNOWN_PRE_TOKENIZER
 };
 
@@ -54,4 +55,41 @@ class BertPreTokenizer : public PreTokenizer {
   BertPreTokenizer();
   PreTokenizedString pre_tokenize(
       PreTokenizedString pre_tokenized) const override;
+};
+
+class SequencePreTokenizer : public PreTokenizer {
+ public:
+  explicit SequencePreTokenizer(
+      std::vector<std::unique_ptr<PreTokenizer>> pretokenizers);
+  PreTokenizedString pre_tokenize(
+      PreTokenizedString pre_tokenized) const override;
+
+ private:
+  std::vector<std::unique_ptr<PreTokenizer>> pretokenizers;
+};
+
+class SplitPreTokenizer : public PreTokenizer {
+ public:
+  explicit SplitPreTokenizer(std::string pattern, std::string behavior,
+                             bool invert);
+  PreTokenizedString pre_tokenize(
+      PreTokenizedString pre_tokenized) const override;
+
+ private:
+  std::string pattern;
+  SPLIT_DELIMITER_BEHAVIOR behavior;
+  bool invert;
+};
+
+class ByteLevelPreTokenizer : public PreTokenizer {
+ public:
+  explicit ByteLevelPreTokenizer(bool add_prefix_space, bool trim_offsets,
+                                 bool use_regex);
+  PreTokenizedString pre_tokenize(
+      PreTokenizedString pre_tokenized) const override;
+
+ private:
+  bool add_prefix_space;
+  bool trim_offsets;
+  bool use_regex;
 };

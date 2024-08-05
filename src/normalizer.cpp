@@ -111,7 +111,6 @@ std::unique_ptr<Normalizer> with_normalizer(
     bool clean_text = val.type() == simdjson::ondemand::json_type::null
                           ? false
                           : static_cast<bool>(val.get_bool());
-
     val = normalizer_params["handle_chinese_chars"].value();
     bool handle_chinese_chars =
         val.type() == simdjson::ondemand::json_type::null
@@ -121,7 +120,6 @@ std::unique_ptr<Normalizer> with_normalizer(
     bool strip_accents = val.type() == simdjson::ondemand::json_type::null
                              ? false
                              : static_cast<bool>(val.get_bool());
-
     val = normalizer_params["lowercase"].value();
     bool lowercase = val.type() == simdjson::ondemand::json_type::null
                          ? false
