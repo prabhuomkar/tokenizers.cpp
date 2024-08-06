@@ -62,9 +62,6 @@ TEST(SplitPreTokenizerTest, Simple) {
       Split("?", {30, 31})};
   auto got = pre_tokenizer->pre_tokenize(
       PreTokenizedString(NormalizedString(L"Why don't you give 100 dollars?")));
-  for (int i = 0; i < got.splits.size(); i++) {
-    std::cout << got.splits[i].normalized << std::endl;
-  }
   validate_splits(expected, got.splits);
 }
 

@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "simdjson.h"
@@ -90,4 +91,14 @@ class SequenceDecoder : public Decoder {
 
  private:
   std::vector<std::unique_ptr<Decoder>> decoders;
+};
+
+class ByteLevelDecoder : public Decoder {
+ public:
+  ByteLevelDecoder();
+  std::vector<std::string> decode_chain(
+      std::vector<std::string> tokens) const override;
+
+ private:
+  std::unordered_map<std::string, uint16_t> CHAR_BYTES;
 };

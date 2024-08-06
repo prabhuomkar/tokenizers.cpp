@@ -2,8 +2,10 @@
 #pragma once
 
 #include <codecvt>
+#include <cstdint>
 #include <optional>
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -52,3 +54,5 @@ class Split {
 std::string convert_to_string(std::wstring sequence);
 
 std::wstring convert_from_string(std::string sequence);
+
+std::unordered_map<uint16_t, std::string> bytes_char();

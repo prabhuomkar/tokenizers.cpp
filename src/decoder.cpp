@@ -1,6 +1,9 @@
 // Copyright 2024 Omkar Prabhu
 #include "tokenizers/decoder.h"
 
+#include <unicode/uchar.h>
+#include <unicode/unistr.h>
+
 #include <iostream>
 #include <memory>
 #include <string>
@@ -8,6 +11,7 @@
 #include <vector>
 
 #include "simdjson.h"
+#include "tokenizers/common.h"
 
 DECODER get_decoder(std::string type) {
   static const std::unordered_map<std::string, DECODER> types = {
@@ -91,6 +95,8 @@ std::unique_ptr<Decoder> with_decoder(
     return std::make_unique<ByteFallbackDecoder>(ByteFallbackDecoder());
   } else if (get_decoder(type) == FUSE_DECODER) {
     return std::make_unique<FuseDecoder>(FuseDecoder());
+  } else if (get_decoder(type) == BYTE_LEVEL_DECODER) {
+    return std::make_unique<ByteLevelDecoder>(ByteLevelDecoder());
   }
   return nullptr;
 }
@@ -182,4 +188,30 @@ std::vector<std::string> SequenceDecoder::decode_chain(
     tokens = decoder->decode_chain(tokens);
   }
   return tokens;
+}
+
+ByteLevelDecoder::ByteLevelDecoder() {
+  auto BYTES_CHAR = bytes_char();
+  for (auto elem : BYTES_CHAR) {
+    CHAR_BYTES[elem.second] = elem.first;
+  }
+}
+
+std::vector<std::string> ByteLevelDecoder::decode_chain(
+    std::vector<std::string> tokens) const {
+  std::string result;
+  for (const auto& token : tokens) {
+    icu::UnicodeString unicode_token = icu::UnicodeString::fromUTF8(token);
+    for (int i = 0; i < unicode_token.length(); i++) {
+      auto ch = unicode_token.char32At(i);
+      auto it = CHAR_BYTES.find(std::string(1, ch));
+      if (it != CHAR_BYTES.end()) {
+        result.push_back(static_cast<char>(it->second));
+      } else {
+        result.push_back(ch);
+      }
+    }
+  }
+
+  return {result};
 }

@@ -1,9 +1,14 @@
 // Copyright 2024 Omkar Prabhu
 #include "tokenizers/post_processor.h"
 
+#include <unicode/uchar.h>
+#include <unicode/unistr.h>
+
 #include <algorithm>
+#include <functional>
 #include <iostream>
 #include <memory>
+#include <numeric>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -15,7 +20,8 @@ POST_PROCESSOR get_post_processor(std::string type) {
       {"BertProcessing", BERT_PROCESSING},
       {"ByteLevel", BYTE_LEVEL_PROCESSING},
       {"RobertaProcessing", ROBERTA_PROCESSING},
-      {"TemplateProcessing", TEMPLATE_PROCESSING}};
+      {"TemplateProcessing", TEMPLATE_PROCESSING},
+      {"Sequence", SEQUENCE_PROCESSING}};
 
   auto it = types.find(type);
   if (it != types.end()) {
@@ -98,6 +104,32 @@ std::unique_ptr<PostProcessor> with_post_processor(
     }
     return std::make_unique<TemplateProcessing>(
         TemplateProcessing(single, pair, special_tokens));
+  } else if (get_post_processor(type) == SEQUENCE_PROCESSING) {
+    simdjson::ondemand::array seq_processors_list =
+        post_processor_params["processors"].get_array();
+    std::vector<std::unique_ptr<PostProcessor>> seq_processors;
+    for (simdjson::ondemand::value processor_val : seq_processors_list) {
+      simdjson::ondemand::object seq_processor_params =
+          processor_val.get_object();
+      std::unique_ptr<PostProcessor> seq_processor =
+          with_post_processor(seq_processor_params);
+      if (seq_processor != nullptr) {
+        seq_processors.push_back(std::move(seq_processor));
+      }
+    }
+    return std::make_unique<SequenceProcessing>(
+        SequenceProcessing(std::move(seq_processors)));
+  } else if (get_post_processor(type) == BYTE_LEVEL_PROCESSING) {
+    val = post_processor_params["add_prefix_space"].value();
+    bool add_prefix_space = val.type() == simdjson::ondemand::json_type::null
+                                ? false
+                                : static_cast<bool>(val.get_bool());
+    val = post_processor_params["trim_offsets"].value();
+    bool trim_offsets = val.type() == simdjson::ondemand::json_type::null
+                            ? false
+                            : static_cast<bool>(val.get_bool());
+    return std::make_unique<ByteLevelProcessing>(
+        ByteLevelProcessing(add_prefix_space, trim_offsets));
   }
   return nullptr;
 }
@@ -170,4 +202,83 @@ Encoding TemplateProcessing::process(Encoding encoding,
                                  final_encoding.attention_mask.end());
   }
   return result;
+}
+
+Encoding ByteLevelProcessing::process_offsets(const Encoding& encoding,
+                                              bool add_prefix_space) const {
+  Encoding new_encoding = encoding;
+  for (int i = 0; i < encoding.ids.size(); i++) {
+    std::string token = encoding.tokens[i];
+    std::pair<int, int> offsets = encoding.offsets[i];
+    int leading_spaces = 0, trailing_spaces = 0;
+    icu::UnicodeString unicode_token = icu::UnicodeString::fromUTF8(token);
+    for (int j = 0; j < unicode_token.length(); j++) {
+      std::string token_char;
+      unicode_token.tempSubString(j, 1).toUTF8String(token_char);
+      if (BYTES_CHAR.at(static_cast<uint16_t>(' ')) == token_char) {
+        leading_spaces++;
+      } else {
+        break;
+      }
+    }
+    for (int j = unicode_token.length() - 1; j >= 0; j--) {
+      std::string token_char;
+      unicode_token.tempSubString(j, 1).toUTF8String(token_char);
+      if (BYTES_CHAR.at(static_cast<uint16_t>(' ')) == token_char) {
+        trailing_spaces++;
+      } else {
+        break;
+      }
+    }
+    if (leading_spaces > 0 || trailing_spaces > 0) {
+      if (leading_spaces > 0) {
+        bool is_first = (i == 0 || offsets.first == 0);
+        if (is_first && add_prefix_space && leading_spaces == 1) {
+          leading_spaces = 0;
+        }
+        offsets.first =
+            std::min(offsets.first + leading_spaces, offsets.second);
+      }
+      if (trailing_spaces > 0 && offsets.second >= trailing_spaces) {
+        offsets.second =
+            std::max(offsets.second - trailing_spaces, offsets.first);
+      }
+    }
+    new_encoding.tokens[i] = token;
+    new_encoding.offsets[i] = offsets;
+  }
+  return new_encoding;
+}
+
+ByteLevelProcessing::ByteLevelProcessing(bool add_prefix_space,
+                                         bool trim_offsets)
+    : add_prefix_space(add_prefix_space),
+      trim_offsets(trim_offsets),
+      BYTES_CHAR(bytes_char()) {}
+
+Encoding ByteLevelProcessing::process(Encoding encoding,
+                                      bool add_special_tokens) const {
+  if (trim_offsets) {
+    encoding = process_offsets(encoding, add_prefix_space);
+    for (Encoding& overflowing_encoding : encoding.overflowing) {
+      overflowing_encoding =
+          process_offsets(overflowing_encoding, add_prefix_space);
+    }
+  }
+  return encoding;
+}
+
+SequenceProcessing::SequenceProcessing(
+    std::vector<std::unique_ptr<PostProcessor>> processors)
+    : processors(std::move(processors)) {}
+
+Encoding SequenceProcessing::process(Encoding encoding,
+                                     bool add_special_tokens) const {
+  encoding = std::accumulate(
+      processors.begin(), processors.end(), encoding,
+      [add_special_tokens](const Encoding& acc,
+                           const std::unique_ptr<PostProcessor>& processor) {
+        return processor->process(acc, add_special_tokens);
+      });
+  return encoding;
 }

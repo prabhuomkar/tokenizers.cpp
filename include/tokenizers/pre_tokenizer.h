@@ -95,5 +95,5 @@ class ByteLevelPreTokenizer : public PreTokenizer {
   bool add_prefix_space;
   bool use_regex;
   std::string regex;
-  std::unordered_map<uint16_t, icu::UnicodeString> bytes_char;
+  std::unordered_map<uint16_t, std::string> BYTES_CHAR;
 };

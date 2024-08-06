@@ -69,3 +69,35 @@ TEST(TemplateProcessingTest, WithoutSpecialTokens) {
   Encoding got = post_processor->process(input_encoding, false);
   assert_post_processor_encoding(expected, got);
 }
+
+TEST(ByteLevelProcessingTest, AddPrefixSpace) {
+  std::unique_ptr<PostProcessor> post_processor =
+      get_post_processor_from_string(
+          "{\"type\":\"ByteLevel\",\"add_prefix_space\":true,\"trim_offsets\":"
+          "false}");
+  EXPECT_NE(post_processor, nullptr);
+  Encoding input_encoding(
+      {0, 1, 2, 3, 4}, {}, {"Ġ", "ĠĠĠĠHelloĠĠ", "ĠĠHello", "HelloĠĠ", "ĠĠĠĠ"},
+      {}, {{0, 1}, {0, 11}, {11, 18}, {18, 25}, {25, 29}}, {}, {});
+  Encoding expected({0, 1, 2, 3, 4}, {},
+                    {"Ġ", "ĠĠĠĠHelloĠĠ", "ĠĠHello", "HelloĠĠ", "ĠĠĠĠ"}, {},
+                    {{0, 1}, {0, 11}, {11, 18}, {18, 25}, {25, 29}}, {}, {});
+  Encoding got = post_processor->process(input_encoding, false);
+  assert_post_processor_encoding(expected, got);
+}
+
+TEST(ByteLevelProcessingTest, TrimOffsets) {
+  std::unique_ptr<PostProcessor> post_processor =
+      get_post_processor_from_string(
+          "{\"type\":\"ByteLevel\",\"add_prefix_space\":false,\"trim_"
+          "offsets\":true}");
+  EXPECT_NE(post_processor, nullptr);
+  Encoding input_encoding(
+      {0, 1, 2, 3, 4}, {}, {"Ġ", "ĠĠĠĠHelloĠĠ", "ĠĠHello", "HelloĠĠ", "ĠĠĠĠ"},
+      {}, {{0, 1}, {0, 11}, {11, 18}, {18, 25}, {25, 29}}, {}, {});
+  Encoding expected({0, 1, 2, 3, 4}, {},
+                    {"Ġ", "ĠĠĠĠHelloĠĠ", "ĠĠHello", "HelloĠĠ", "ĠĠĠĠ"}, {},
+                    {{1, 1}, {4, 9}, {13, 18}, {18, 23}, {29, 29}}, {}, {});
+  Encoding got = post_processor->process(input_encoding, false);
+  assert_post_processor_encoding(expected, got);
+}

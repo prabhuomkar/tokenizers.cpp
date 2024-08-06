@@ -51,3 +51,13 @@ TEST(SequenceDecoderTest, Simple) {
                                        "o",      " No",  "guera"};
   EXPECT_EQ(expected, got);
 }
+
+TEST(ByteLevelDecoderTest, Simple) {
+  std::unique_ptr<Decoder> decoder =
+      get_decoder_from_string("{\"type\":\"ByteLevel\"}");
+  EXPECT_NE(decoder, nullptr);
+  std::vector<std::string> input = {"How", "Ġare", "Ġya", "Ġdoing", "?"};
+  std::vector<std::string> got = decoder->decode_chain(input);
+  std::vector<std::string> expected = {"How are ya doing?"};
+  EXPECT_EQ(expected, got);
+}

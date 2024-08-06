@@ -242,44 +242,8 @@ ByteLevelPreTokenizer::ByteLevelPreTokenizer(bool add_prefix_space,
       use_regex(use_regex),
       regex(
           R"('s|'t|'re|'ve|'m|'ll|'d| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+)",
-          std::regex_constants::optimize) {
-  std::vector<uint16_t> bs;
-  for (uint16_t i = '!'; i <= '~'; ++i) {
-    bs.push_back(i);
-  }
-  for (uint16_t i = 0xA1; i <= 0xAC; ++i) {
-    bs.push_back(i);
-  }
-  for (uint16_t i = 0xAE; i <= 0xFF; ++i) {
-    bs.push_back(i);
-  }
-  std::vector<uint32_t> cs;
-  std::transform(bs.begin(), bs.end(), std::back_inserter(cs),
-                 [](uint16_t b) { return static_cast<uint32_t>(b); });
-  uint32_t n = 0;
-  for (uint16_t b = 0; b <= 255; ++b) {
-    if (std::find(bs.begin(), bs.end(), b) == bs.end()) {
-      bs.push_back(b);
-      cs.push_back((1 << 8) + n);
-      ++n;
-    }
-  }
-  for (size_t i = 0; i < bs.size(); ++i) {
-    uint16_t byte = bs[i];
-    uint32_t code_point = cs[i];
-    if (code_point <= 0x10FFFF) {
-      icu::UnicodeString unicode_str;
-      if (code_point <= 0xFFFF) {
-        unicode_str.append(static_cast<UChar>(code_point));
-      } else {
-        code_point -= 0x10000;
-        unicode_str.append(static_cast<UChar>((code_point >> 10) + 0xD800));
-        unicode_str.append(static_cast<UChar>((code_point & 0x3FF) + 0xDC00));
-      }
-      bytes_char[byte] = unicode_str;
-    }
-  }
-}
+          std::regex_constants::optimize),
+      BYTES_CHAR(bytes_char()) {}
 
 PreTokenizedString ByteLevelPreTokenizer::pre_tokenize(
     PreTokenizedString pre_tokenized) const {
@@ -301,9 +265,7 @@ PreTokenizedString ByteLevelPreTokenizer::pre_tokenize(
   for (Split& split : pre_tokenized.splits) {
     std::string new_split_normalized;
     for (const char c : split.normalized) {
-      std::string schar;
-      bytes_char.at(static_cast<int>(c)).toUTF8String(schar);
-      new_split_normalized += schar;
+      new_split_normalized += BYTES_CHAR.at(static_cast<int>(c));
     }
     split.normalized = new_split_normalized;
   }
