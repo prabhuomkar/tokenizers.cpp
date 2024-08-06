@@ -46,3 +46,63 @@ TEST(BertPreTokenizerTest, Simple) {
       PreTokenizedString(NormalizedString(L"野 口 里 佳 Noguchi Rika")));
   validate_splits(expected, got.splits);
 }
+
+TEST(SplitPreTokenizerTest, Simple) {
+  std::unique_ptr<PreTokenizer> pre_tokenizer = get_pre_tokenizer_from_string(
+      "{\"type\":\"Split\",\"pattern\":{\"Regex\":\"(?i:'s|'t|'re|'ve|'m|'ll|'"
+      "d)|[^\\\\r\\\\n\\\\p{L}\\\\p{N}]?\\\\p{L}+|\\\\p{N}{1,3}| "
+      "?[^\\\\s\\\\p{L}\\\\p{N}]+[\\\\r\\\\n]*|\\\\s*[\\\\r\\\\n]+|\\\\s+(?!"
+      "\\\\S)|\\\\s+\"},\"behavior\":\"Isolated\",\"invert\":false}");
+  EXPECT_NE(pre_tokenizer, nullptr);
+  std::vector<Split> expected = {
+      Split("Why", {0, 3}),     Split(" don", {3, 7}),
+      Split("'t", {7, 9}),      Split(" you", {9, 13}),
+      Split(" give", {13, 18}), Split(" ", {18, 19}),
+      Split("100", {19, 22}),   Split(" dollars", {22, 30}),
+      Split("?", {30, 31})};
+  auto got = pre_tokenizer->pre_tokenize(
+      PreTokenizedString(NormalizedString(L"Why don't you give 100 dollars?")));
+  for (int i = 0; i < got.splits.size(); i++) {
+    std::cout << got.splits[i].normalized << std::endl;
+  }
+  validate_splits(expected, got.splits);
+}
+
+TEST(ByteLevelPreTokenizerTest, Simple) {
+  std::unique_ptr<PreTokenizer> pre_tokenizer = get_pre_tokenizer_from_string(
+      "{\"type\":\"ByteLevel\",\"add_prefix_space\":false,\"use_regex\":"
+      "false}");
+  EXPECT_NE(pre_tokenizer, nullptr);
+  std::vector<Split> expected = {Split("HowĠareĠyaĠdoing?", {0, 17})};
+  auto got = pre_tokenizer->pre_tokenize(
+      PreTokenizedString(NormalizedString(L"How are ya doing?")));
+  validate_splits(expected, got.splits);
+}
+
+TEST(ByteLevelPreTokenizerTest, AddPrefixSpace) {
+  std::unique_ptr<PreTokenizer> pre_tokenizer = get_pre_tokenizer_from_string(
+      "{\"type\":\"ByteLevel\",\"add_prefix_space\":true,\"use_regex\":false}");
+  EXPECT_NE(pre_tokenizer, nullptr);
+  std::vector<Split> expected = {Split("ĠHowĠareĠyaĠdoing?", {0, 18})};
+  auto got = pre_tokenizer->pre_tokenize(
+      PreTokenizedString(NormalizedString(L"How are ya doing?")));
+  validate_splits(expected, got.splits);
+}
+
+TEST(SequencePreTokenizerTest, Simple) {
+  std::unique_ptr<PreTokenizer> pre_tokenizer = get_pre_tokenizer_from_string(
+      "{\"type\":\"Sequence\",\"pretokenizers\":[{\"type\":\"Split\","
+      "\"pattern\":{\"Regex\":\"(?i:'s|'t|'re|'ve|'m|'ll|'d)|[^\\\\r\\\\n\\\\p{"
+      "L}\\\\p{N}]?\\\\p{L}+|\\\\p{N}{1,3}| "
+      "?[^\\\\s\\\\p{L}\\\\p{N}]+[\\\\r\\\\n]*|\\\\s*[\\\\r\\\\n]+|\\\\s+(?!"
+      "\\\\S)|\\\\s+\"},\"behavior\":\"Isolated\",\"invert\":false},{\"type\":"
+      "\"ByteLevel\",\"add_prefix_space\":false,\"trim_offsets\":true,\"use_"
+      "regex\":false}]}");
+  EXPECT_NE(pre_tokenizer, nullptr);
+  std::vector<Split> expected = {
+      Split("How", {0, 3}), Split("Ġare", {3, 7}), Split("Ġya", {7, 10}),
+      Split("Ġdoing", {10, 16}), Split("?", {16, 17})};
+  auto got = pre_tokenizer->pre_tokenize(
+      PreTokenizedString(NormalizedString(L"How are ya doing?")));
+  validate_splits(expected, got.splits);
+}

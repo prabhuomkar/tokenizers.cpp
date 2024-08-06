@@ -13,7 +13,8 @@ Token::Token() : id(0), value(""), offsets({}) {}
 Token::Token(int id, std::string value, std::pair<int, int> offsets)
     : id(id), value(value), offsets(offsets) {}
 
-SPLIT_DELIMITER_BEHAVIOR get_split_delimiter_behavior(std::string behavior) {
+SPLIT_DELIMITER_BEHAVIOR get_split_delimiter_behavior(
+    const std::string& behavior) {
   if (behavior == "Isolated") {
     return ISOLATED;
   }

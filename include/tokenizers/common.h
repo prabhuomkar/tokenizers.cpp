@@ -37,7 +37,8 @@ class Token {
 
 enum SPLIT_DELIMITER_BEHAVIOR { REMOVED, ISOLATED };
 
-SPLIT_DELIMITER_BEHAVIOR get_split_delimiter_behavior(std::string behavior);
+SPLIT_DELIMITER_BEHAVIOR get_split_delimiter_behavior(
+    const std::string& behavior);
 
 class Split {
  public:

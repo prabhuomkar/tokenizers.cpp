@@ -7,6 +7,8 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "simdjson.h"
@@ -36,7 +38,9 @@ class PreTokenizedString {
   NormalizedString normalized;
   std::vector<Split> splits;
   explicit PreTokenizedString(const NormalizedString& normalized);
-  void split(std::function<bool(UChar32)> split_fn,
+  void split(std::function<std::vector<std::pair<std::pair<int, int>, bool>>(
+                 icu::UnicodeString)>
+                 split_fn,
              SPLIT_DELIMITER_BEHAVIOR pattern);
 };
 
@@ -70,8 +74,8 @@ class SequencePreTokenizer : public PreTokenizer {
 
 class SplitPreTokenizer : public PreTokenizer {
  public:
-  explicit SplitPreTokenizer(std::string pattern, std::string behavior,
-                             bool invert);
+  explicit SplitPreTokenizer(const std::string& pattern,
+                             const std::string& behavior, bool invert);
   PreTokenizedString pre_tokenize(
       PreTokenizedString pre_tokenized) const override;
 
@@ -83,13 +87,13 @@ class SplitPreTokenizer : public PreTokenizer {
 
 class ByteLevelPreTokenizer : public PreTokenizer {
  public:
-  explicit ByteLevelPreTokenizer(bool add_prefix_space, bool trim_offsets,
-                                 bool use_regex);
+  explicit ByteLevelPreTokenizer(bool add_prefix_space, bool use_regex);
   PreTokenizedString pre_tokenize(
       PreTokenizedString pre_tokenized) const override;
 
  private:
   bool add_prefix_space;
-  bool trim_offsets;
   bool use_regex;
+  std::string regex;
+  std::unordered_map<uint16_t, icu::UnicodeString> bytes_char;
 };

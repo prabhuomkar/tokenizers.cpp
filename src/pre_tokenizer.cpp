@@ -1,6 +1,7 @@
 // Copyright 2024 Omkar Prabhu
 #include "tokenizers/pre_tokenizer.h"
 
+#include <unicode/regex.h>
 #include <unicode/uchar.h>
 #include <unicode/unistr.h>
 
@@ -12,6 +13,7 @@
 #include <regex>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "simdjson.h"
@@ -88,91 +90,105 @@ std::unique_ptr<PreTokenizer> with_pre_tokenizer(
     bool add_prefix_space = val.type() == simdjson::ondemand::json_type::null
                                 ? false
                                 : static_cast<bool>(val.get_bool());
-    val = pre_tokenizer_params["trim_offsets"].value();
-    bool trim_offsets = val.type() == simdjson::ondemand::json_type::null
-                            ? false
-                            : static_cast<bool>(val.get_bool());
     val = pre_tokenizer_params["use_regex"].value();
     bool use_regex = val.type() == simdjson::ondemand::json_type::null
                          ? false
                          : static_cast<bool>(val.get_bool());
     return std::make_unique<ByteLevelPreTokenizer>(
-        ByteLevelPreTokenizer(add_prefix_space, trim_offsets, use_regex));
+        ByteLevelPreTokenizer(add_prefix_space, use_regex));
   }
   return nullptr;
 }
 
-bool is_whitespace(UChar32 c) { return u_isspace(c); }
-
-bool is_bert_punc(UChar32 c) {
-  return u_ispunct(c) || ispunct(static_cast<unsigned char>(c));
-}
-
-std::vector<int> find_matches(icu::UnicodeString input,
-                              std::function<bool(UChar32)> match_fn) {
-  std::vector<int> matches;
-  for (int i = 0; i < input.length(); ++i) {
-    if (match_fn(input.char32At(i))) {
-      matches.push_back(i);
-    }
+std::vector<std::pair<std::pair<int, int>, bool>> find_matches(
+    std::string regex, icu::UnicodeString input) {
+  std::vector<std::pair<int, int>> matches;
+  UErrorCode status = U_ZERO_ERROR;
+  icu::RegexPattern* unicode_pattern = icu::RegexPattern::compile(
+      icu::UnicodeString::fromUTF8(regex), 0, status);
+  icu::RegexMatcher* matcher = unicode_pattern->matcher(input, status);
+  while (matcher->find(status)) {
+    matches.push_back({matcher->start(status), matcher->end(status)});
   }
-  return matches;
+  delete matcher;
+  delete unicode_pattern;
+
+  std::vector<std::pair<std::pair<int, int>, bool>> result;
+  int cur = 0;
+  for (auto match : matches) {
+    if (cur != match.first) {
+      result.push_back({{cur, match.first}, false});
+    }
+    result.push_back({match, true});
+    cur = match.second;
+  }
+  if (cur < input.length()) {
+    result.push_back({{cur, input.length()}, false});
+  }
+  return result;
 }
-std::vector<Split> split_normalized(Split original_split,
-                                    std::function<bool(UChar32)> split_fn,
-                                    SPLIT_DELIMITER_BEHAVIOR pattern) {
+
+std::vector<std::pair<std::pair<int, int>, bool>> is_whitespace(
+    icu::UnicodeString input) {
+  std::string pattern = "\\s+";
+  return find_matches(pattern, input);
+}
+
+std::vector<std::pair<std::pair<int, int>, bool>> is_bert_punc(
+    icu::UnicodeString input) {
+  std::string pattern = "\\p{P}";
+  return find_matches(pattern, input);
+}
+
+std::vector<Split> split_normalized(
+    Split original_split,
+    std::function<
+        std::vector<std::pair<std::pair<int, int>, bool>>(icu::UnicodeString)>
+        split_fn,
+    SPLIT_DELIMITER_BEHAVIOR pattern) {
   std::vector<Split> new_splits;
-  int offset = 0;
   icu::UnicodeString unicode_normalized =
       icu::UnicodeString::fromUTF8(original_split.normalized);
-  std::vector<int> matches = find_matches(unicode_normalized, split_fn);
-  for (int match : matches) {
-    if (unicode_normalized.tempSubStringBetween(offset, match).length() != 0) {
-      std::string split_unicode_normalized;
-      unicode_normalized.tempSubStringBetween(offset, match)
-          .toUTF8String(split_unicode_normalized);
-      new_splits.push_back(Split(split_unicode_normalized,
-                                 {offset + original_split.offsets.first,
-                                  match + original_split.offsets.first}));
-    }
-    switch (pattern) {
-      case REMOVED:
-        break;
-      case ISOLATED:
-        std::string split_unicode_normalized;
-        unicode_normalized.tempSubStringBetween(match, match + 1)
-            .toUTF8String(split_unicode_normalized);
-        new_splits.push_back(
-            Split(split_unicode_normalized,
-                  {match + original_split.offsets.first,
-                   match + original_split.offsets.first + +1}));
-        break;
-    }
-    offset = match + 1;
+  std::vector<std::pair<std::pair<int, int>, bool>> matches =
+      split_fn(unicode_normalized);
+  switch (pattern) {
+    case REMOVED:
+      break;
+    case ISOLATED:
+      for (auto& match : matches) {
+        match.second = false;
+      }
+      break;
   }
-  if (offset <= unicode_normalized.length() - 1) {
-    std::string split_unicode_normalized;
-    unicode_normalized.tempSubStringBetween(offset, unicode_normalized.length())
-        .toUTF8String(split_unicode_normalized);
-    new_splits.push_back(
-        Split(split_unicode_normalized,
-              {offset + original_split.offsets.first,
-               unicode_normalized.length() + original_split.offsets.first}));
+  for (auto match : matches) {
+    if (!match.second) {
+      std::string split_unicode_normalized;
+      unicode_normalized
+          .tempSubStringBetween(match.first.first, match.first.second)
+          .toUTF8String(split_unicode_normalized);
+      new_splits.push_back(
+          Split(split_unicode_normalized,
+                {match.first.first + original_split.offsets.first,
+                 match.first.second + original_split.offsets.first}));
+    }
   }
   return new_splits;
 }
 
-void PreTokenizedString::split(std::function<bool(UChar32)> split_fn,
-                               SPLIT_DELIMITER_BEHAVIOR pattern) {
+void PreTokenizedString::split(
+    std::function<
+        std::vector<std::pair<std::pair<int, int>, bool>>(icu::UnicodeString)>
+        split_fn,
+    SPLIT_DELIMITER_BEHAVIOR pattern) {
   std::vector<Split> new_splits;
-  for (auto org_split : splits) {
-    if (org_split.tokens.size() != 0) {
-      new_splits.push_back(org_split);
+  for (auto orig_split : splits) {
+    if (orig_split.tokens.size() != 0) {
+      new_splits.push_back(orig_split);
       continue;
     }
 
     std::vector<Split> new_normalized_splits =
-        split_normalized(org_split, split_fn, pattern);
+        split_normalized(orig_split, split_fn, pattern);
     new_splits.insert(new_splits.end(), new_normalized_splits.begin(),
                       new_normalized_splits.end());
   }
@@ -203,20 +219,93 @@ PreTokenizedString SequencePreTokenizer::pre_tokenize(
   return pre_tokenized;
 }
 
-SplitPreTokenizer::SplitPreTokenizer(std::string pattern, std::string behavior,
-                                     bool invert)
+SplitPreTokenizer::SplitPreTokenizer(const std::string& pattern,
+                                     const std::string& behavior, bool invert)
     : pattern(pattern),
       behavior(get_split_delimiter_behavior(behavior)),
       invert(invert) {}
 
 PreTokenizedString SplitPreTokenizer::pre_tokenize(
-    PreTokenizedString pre_tokenized) const {}
+    PreTokenizedString pre_tokenized) const {
+  auto matches_regex = [this](icu::UnicodeString input)
+      -> std::vector<std::pair<std::pair<int, int>, bool>> {
+    return find_matches(pattern, input);
+  };
+
+  pre_tokenized.split(matches_regex, behavior);
+  return pre_tokenized;
+}
 
 ByteLevelPreTokenizer::ByteLevelPreTokenizer(bool add_prefix_space,
-                                             bool trim_offsets, bool use_regex)
+                                             bool use_regex)
     : add_prefix_space(add_prefix_space),
-      trim_offsets(trim_offsets),
-      use_regex(use_regex) {}
+      use_regex(use_regex),
+      regex(
+          R"('s|'t|'re|'ve|'m|'ll|'d| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+)",
+          std::regex_constants::optimize) {
+  std::vector<uint16_t> bs;
+  for (uint16_t i = '!'; i <= '~'; ++i) {
+    bs.push_back(i);
+  }
+  for (uint16_t i = 0xA1; i <= 0xAC; ++i) {
+    bs.push_back(i);
+  }
+  for (uint16_t i = 0xAE; i <= 0xFF; ++i) {
+    bs.push_back(i);
+  }
+  std::vector<uint32_t> cs;
+  std::transform(bs.begin(), bs.end(), std::back_inserter(cs),
+                 [](uint16_t b) { return static_cast<uint32_t>(b); });
+  uint32_t n = 0;
+  for (uint16_t b = 0; b <= 255; ++b) {
+    if (std::find(bs.begin(), bs.end(), b) == bs.end()) {
+      bs.push_back(b);
+      cs.push_back((1 << 8) + n);
+      ++n;
+    }
+  }
+  for (size_t i = 0; i < bs.size(); ++i) {
+    uint16_t byte = bs[i];
+    uint32_t code_point = cs[i];
+    if (code_point <= 0x10FFFF) {
+      icu::UnicodeString unicode_str;
+      if (code_point <= 0xFFFF) {
+        unicode_str.append(static_cast<UChar>(code_point));
+      } else {
+        code_point -= 0x10000;
+        unicode_str.append(static_cast<UChar>((code_point >> 10) + 0xD800));
+        unicode_str.append(static_cast<UChar>((code_point & 0x3FF) + 0xDC00));
+      }
+      bytes_char[byte] = unicode_str;
+    }
+  }
+}
 
 PreTokenizedString ByteLevelPreTokenizer::pre_tokenize(
-    PreTokenizedString pre_tokenized) const {}
+    PreTokenizedString pre_tokenized) const {
+  if (add_prefix_space &&
+      !std::iswspace(pre_tokenized.normalized.normalized.at(0))) {
+    pre_tokenized.normalized.normalized =
+        std::wstring(L" ") + pre_tokenized.normalized.normalized;
+    pre_tokenized.normalized.transform(0, "add", std::wstring(L" ").length());
+    pre_tokenized = PreTokenizedString(pre_tokenized.normalized);
+  }
+  auto matches_regex = [this](icu::UnicodeString input)
+      -> std::vector<std::pair<std::pair<int, int>, bool>> {
+    if (use_regex) {
+      return find_matches(regex, input);
+    }
+    return {{{0, input.length()}, false}};
+  };
+  pre_tokenized.split(matches_regex, SPLIT_DELIMITER_BEHAVIOR::ISOLATED);
+  for (Split& split : pre_tokenized.splits) {
+    std::string new_split_normalized;
+    for (const char c : split.normalized) {
+      std::string schar;
+      bytes_char.at(static_cast<int>(c)).toUTF8String(schar);
+      new_split_normalized += schar;
+    }
+    split.normalized = new_split_normalized;
+  }
+  return pre_tokenized;
+}
