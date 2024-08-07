@@ -81,7 +81,8 @@ int AddedVocabulary::add_tokens(const std::vector<AddedToken>& tokens,
                              return a.second < b.second;
                            });
       if (model->get_vocab_size() == 0 ||
-          max_val_token->second >= model->get_vocab_size()) {
+          (max_val_token != nullptr &&
+           max_val_token->second >= model->get_vocab_size())) {
         new_id = max_val_token->second + 1;
       } else {
         new_id = model->get_vocab_size();
