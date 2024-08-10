@@ -21,7 +21,7 @@ This section will provide information about the [Tokenizer components](https://h
 ### PreTokenizer
 | **Name** | [BertPreTokenizer] | [ByteLevelPreTokenizer] | [CharDelimiterSplit] | [Metaspace] | [Whitespace] | [SequencePreTokenizer] | [Split] | [Punctuation] | [WhitespaceSplit] | [Digits] | [UnicodeScripts] |  
 | - | - | - | - | - | - | - | - | - | - | - | - | 
-| **Status** | ✅ | 🚧 | 🚧 | 🚧 | 🚧 | 🚧 | 🚧 | 🚧 | 🚧 | 🚧 | 🚧 |
+| **Status** | ✅ | ✅ | 🚧 | 🚧 | 🚧 | ✅ | ✅ | 🚧 | 🚧 | 🚧 | 🚧 |
 
 ### Model
 | **Name** | [BPE] | [WordPiece] | [WordLevel] | [Unigram] |
@@ -31,12 +31,12 @@ This section will provide information about the [Tokenizer components](https://h
 ### PostProcessor
 | **Name** | [RobertaProcessing] | [BertProcessing] | [ByteLevelProcessing] | [TemplateProcessing] | [SequenceProcessing] | 
 | - | - | - | - | - | - |
-| **Status** | 🚧 | ✅ | 🚧 | 🚧 | 🚧 |
+| **Status** | 🚧 | 🚧 | ✅ | ✅ | ✅ |
 
 ### Decoder
 | **Name** | [BPEDecoder] | [ByteLevelDecoder] | [WordPieceDecoder] | [MetaspaceDecoder] | [CTC] | [SequenceDecoder] | [ReplaceDecoder] | [Fuse] | [StripDecoder] | [ByteFallbackDecoder] |
 | - | - | - | - | - | - | - | - | - | - | - |
-| **Status** | 🚧 | 🚧 | ✅ | 🚧 | 🚧 | ✅ | 🚧 | 🚧 | 🚧 | 🚧 |
+| **Status** | 🚧 | ✅ | ✅ | 🚧 | 🚧 | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 <!-- Normalizers -->
 [BertNormalizer]: https://github.com/huggingface/tokenizers/blob/main/tokenizers/src/normalizers/bert.rs
