@@ -201,7 +201,11 @@ PreTokenizedString WordPiece::tokenize(PreTokenizedString pre_tokenized) const {
 Symbol::Symbol(int c, int prev, int next, int len)
     : c(c), prev(prev), next(next), len(len) {}
 
-void Symbol::merge_with(const Symbol* other, int new_id) { c = new_id; }
+void Symbol::merge_with(const Symbol* other, int new_c) {
+  c = new_c;
+  len += other->len;
+  next = other->next;
+}
 
 Merge::Merge(int pos, int rank, int new_id)
     : pos(pos), rank(rank), new_id(new_id) {}
@@ -310,7 +314,7 @@ BPE::BPE(const std::unordered_map<std::string, int>& vocab,
       ignore_merges(ignore_merges),
       cache({}) {
   int prefix_len = continuing_subword_prefix.length();
-  for (int i = 0; i < merges.size(); ++i) {
+  for (int i = 0; i < merges_list.size(); ++i) {
     std::istringstream iss(merges_list[i]);
     std::string part1, part2;
     if (iss >> part1 >> part2) {
@@ -341,7 +345,7 @@ Word BPE::merge_word(std::string sequence) const {
     bool is_last = (end == length);
 
     std::string sub_sequence = sequence.substr(i, end - i);
-    int sub_len = sub_sequence.size();
+    int sub_len = sub_sequence.length();
 
     if (!is_first && continuing_subword_prefix.size() != 0) {
       sub_sequence = (continuing_subword_prefix + sub_sequence);

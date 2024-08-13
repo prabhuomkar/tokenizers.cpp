@@ -58,7 +58,7 @@ class Symbol {
   int next;
   int len;
   Symbol(int c, int prev, int next, int len);
-  void merge_with(const Symbol* other, int new_id);
+  void merge_with(const Symbol* other, int new_c);
 };
 
 class Merge {
@@ -103,7 +103,7 @@ class BPE : public Model {
   bool ignore_merges;
   PreTokenizedString tokenize(PreTokenizedString pre_tokenized) const override;
   explicit BPE(const std::unordered_map<std::string, int>& vocab,
-               const std::vector<std::string>& merges, float dropout,
+               const std::vector<std::string>& merges_list, float dropout,
                const std::string& unk_token,
                const std::string& continuing_subword_prefix,
                const std::string& end_of_word_suffix, bool fuse_unk,
