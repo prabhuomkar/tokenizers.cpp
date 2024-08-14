@@ -22,8 +22,5 @@ This project supports [CMake](https://cmake.org/) out of the box.
 ## Contributing
 Check out the [Contribution Guide](CONTRIBUTING.md).
 
-## Performance
-TODO(omkar): Add some benchmarks and comparisons with HF tokenizers library
-
 ## License
 This project is licensed under [MIT License](LICENSE)
