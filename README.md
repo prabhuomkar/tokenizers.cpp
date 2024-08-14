@@ -26,4 +26,4 @@ Check out the [Contribution Guide](CONTRIBUTING.md).
 TODO(omkar): Add some benchmarks and comparisons with HF tokenizers library
 
 ## License
-This project is licensed under [? License](LICENSE)
+This project is licensed under [MIT License](LICENSE)
