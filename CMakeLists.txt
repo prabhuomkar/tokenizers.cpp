@@ -4,6 +4,10 @@ project(tokenizers VERSION 1.0.0)
 
 set(CMAKE_CXX_STANDARD 17)
 
+if(APPLE)
+  set(CMAKE_PREFIX_PATH "/usr/local/opt/icu4c" ${CMAKE_PREFIX_PATH})
+endif()
+
 find_package(ICU REQUIRED COMPONENTS uc i18n)
 
 include_directories(${ICU_INCLUDE_DIRS})

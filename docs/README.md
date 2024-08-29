@@ -116,6 +116,8 @@ For setting up the developer environment you will need following installed:
 - This project makes use of 2 third party dependencies:
     - [ICU](https://unicode-org.github.io/icu/): for Unicode related support
     - [simdjson](https://github.com/simdjson/simdjson): for parsing JSON content
+- Download PyTorch for examples from: https://download.pytorch.org/libtorch/cpu/ as per your Operation System!
+    - Note: Prefer the kind given in [GitHub Actions Workflow](../.github/workflows/main.yml)
 - Generate tokenizer config for any HuggingFace model:
 ```bash
 cd scripts/
