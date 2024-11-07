@@ -5,7 +5,7 @@ project(ICU4C)
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/src/CMakeModules")
 include(SetIfNotDefined)
 
-set(ICU_VERSION_MAJOR 75)
+set(ICU_VERSION_MAJOR 76)
 set(ICU_VERSION_MINOR 1)
 set(ICU_LIBS uc tu i18n io data)
 

@@ -9,6 +9,7 @@
 #include <optional>
 #include <string>
 #include <vector>
+#include <utility>
 
 #include "simdjson.h"
 #include "tokenizers/added_vocabulary.h"

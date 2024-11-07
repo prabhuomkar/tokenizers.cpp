@@ -4,6 +4,8 @@
 #include <gtest/gtest.h>
 
 #include <vector>
+#include <memory>
+#include <string>
 
 #include "simdjson.h"
 

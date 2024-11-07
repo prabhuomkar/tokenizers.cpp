@@ -16,7 +16,7 @@ on:
   release:
     types: [published]
 env:
-  ICU_MAJOR_VERSION: 75
+  ICU_MAJOR_VERSION: 76
   ICU_MINOR_VERSION: 1
   LIBTORCH_VERSION: 2.4.0
 jobs:

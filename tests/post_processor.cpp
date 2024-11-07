@@ -3,6 +3,11 @@
 
 #include <gtest/gtest.h>
 
+#include <memory>
+#include <vector>
+#include <string>
+#include <unordered_map>
+
 #include "simdjson.h"
 
 std::unique_ptr<PostProcessor> get_post_processor_from_string(

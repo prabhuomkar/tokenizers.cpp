@@ -105,6 +105,15 @@ set(ICU_LIB_DIR ${ICU_HOST_INSTALL_DIR}/lib)
 set(ICU_INCLUDE_DIR ${ICU_HOST_INSTALL_DIR}/include)
 set(ICU_TARGET icu4c_host)
 
+set(AR "/bin/llvm-ar")
+set(RANLIB "/bin/llvm-ranlib")
+set(STRIP "/bin/llvm-strip")
+if(APPLE)
+    set(AR "/local/bin/llvm-ar")
+    set(RANLIB "/local/bin/llvm-ranlib")
+    set(STRIP "/local/bin/llvm-strip")
+endif()
+
 if(ANDROID)
     if(CMAKE_ANDROID_ARCH_ABI STREQUAL "armeabi-v7a")
         set(ICU_ANDROID_TARGET "armv7a-linux-androideabi")
@@ -130,13 +139,13 @@ if(ANDROID)
         NDK_STANDARD_ROOT=${LLVM_TOOLCHAIN}
         API=${CMAKE_ANDROID_API}
         ANDROIDVER=${CMAKE_ANDROID_API}
-        AR=${LLVM_TOOLCHAIN}/bin/llvm-ar
+        AR=${LLVM_TOOLCHAIN}${AR}
         AS=${ICU_ANDROID_CC}
         CC=${ICU_ANDROID_CC}
         CXX=${ICU_ANDROID_CXX}
         LD=${LLVM_TOOLCHAIN}/bin/ld
-        RANLIB=${LLVM_TOOLCHAIN}/bin/llvm-ranlib
-        STRIP=${LLVM_TOOLCHAIN}/bin/llvm-strip
+        RANLIB=${LLVM_TOOLCHAIN}${RANLIB}
+        STRIP=${LLVM_TOOLCHAIN}${STRIP}
         CFLAGS="${ICU_C_FLAGS}"
         CXXFLAGS="${ICU_CXX_FLAGS}"
         CPPFLAGS="${ICU_CPP_FLAGS}"
@@ -189,13 +198,13 @@ if(IOS)
         ${CMAKE_COMMAND} -E env
         TOOLCHAIN=${LLVM_TOOLCHAIN}
         TARGET=${ICU_IOS_ARCH}
-        AR=${LLVM_TOOLCHAIN}/bin/llvm-ar
+        AR=${LLVM_TOOLCHAIN}${AR}
         AS=${ICU_IOS_CC}
         CC=${ICU_IOS_CC}
         CXX=${ICU_IOS_CXX}
         LD=${LLVM_TOOLCHAIN}/bin/ld
-        RANLIB=${LLVM_TOOLCHAIN}/bin/llvm-ranlib
-        STRIP=${LLVM_TOOLCHAIN}/bin/llvm-strip
+        RANLIB=${LLVM_TOOLCHAIN}${RANLIB}
+        STRIP=${LLVM_TOOLCHAIN}${STRIP}
         CFLAGS="${ICU_C_FLAGS}"
         CXXFLAGS="${ICU_CXX_FLAGS}"
         CPPFLAGS="${ICU_CPP_FLAGS}"
@@ -248,13 +257,13 @@ if(ICU_DESKTOP_TARGET)
         ${CMAKE_COMMAND} -E env
         TOOLCHAIN=${LLVM_TOOLCHAIN}
         TARGET=${ICU_DESKTOP_TARGET}
-        AR=${LLVM_TOOLCHAIN}/bin/llvm-ar
+        AR=${LLVM_TOOLCHAIN}${AR}
         AS=${ICU_DESKTOP_CC}
         CC=${ICU_DESKTOP_CC}
         CXX=${ICU_DESKTOP_CXX}
         LD=${LLVM_TOOLCHAIN}/bin/ld
-        RANLIB=${LLVM_TOOLCHAIN}/bin/llvm-ranlib
-        STRIP=${LLVM_TOOLCHAIN}/bin/llvm-strip
+        RANLIB=${LLVM_TOOLCHAIN}${RANLIB}
+        STRIP=${LLVM_TOOLCHAIN}${STRIP}
         CFLAGS="${ICU_C_FLAGS}"
         CXXFLAGS="${ICU_CXX_FLAGS}"
         CPPFLAGS="${ICU_CPP_FLAGS}"

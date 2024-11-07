@@ -5,6 +5,8 @@
 
 #include <memory>
 #include <vector>
+#include <string>
+#include <unordered_map>
 
 #include "simdjson.h"
 #include "tokenizers/model.h"

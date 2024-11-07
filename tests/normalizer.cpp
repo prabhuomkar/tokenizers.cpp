@@ -5,6 +5,7 @@
 
 #include <memory>
 #include <typeinfo>
+#include <string>
 
 #include "simdjson.h"
 

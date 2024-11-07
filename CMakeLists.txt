@@ -4,13 +4,18 @@ project(tokenizers VERSION 1.0.0)
 
 set(CMAKE_CXX_STANDARD 17)
 
+set(ICU_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/scripts/icu4c/prebuilt/include")
 if(APPLE)
-  set(CMAKE_PREFIX_PATH "/usr/local/opt/icu4c" ${CMAKE_PREFIX_PATH})
+  if(CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")
+    set(ICU_LIB_DIR "${CMAKE_CURRENT_SOURCE_DIR}/scripts/icu4c/prebuilt/libs/ios/armv8a-apple-darwin")
+  else()
+    set(ICU_LIB_DIR "${CMAKE_CURRENT_SOURCE_DIR}/scripts/icu4c/prebuilt/libs/ios/x86_64-apple-darwin")
+  endif()
 endif()
 
-find_package(ICU REQUIRED COMPONENTS uc i18n)
+include_directories(${ICU_INCLUDE_DIR})
 
-include_directories(${ICU_INCLUDE_DIRS})
+link_directories(${ICU_LIB_DIR})
 
 set(SOURCES
   src/added_vocabulary.cpp
@@ -38,7 +43,9 @@ target_include_directories(tokenizers
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-target_link_libraries(tokenizers ${ICU_LIBRARIES})
+target_link_libraries(tokenizers ${ICU_LIB_DIR}/libicuuc.a
+  ${ICU_LIB_DIR}/libicui18n.a
+  ${ICU_LIB_DIR}/libicudata.a)
 
 install(TARGETS tokenizers
         ARCHIVE DESTINATION lib

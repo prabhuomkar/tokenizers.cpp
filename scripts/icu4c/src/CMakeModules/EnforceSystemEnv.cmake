@@ -3,7 +3,7 @@ if (CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
 elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
     # Supported
 elseif (CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin")
-    message(FATAL_ERROR "Unsupported host platform: MacOS.\nConsult the README for a list of supported host systems.\n")
+    # Supported
 else ()
     message(FATAL_ERROR "Unknown host platform: ${CMAKE_HOST_SYSTEM_NAME}\nConsult the README for a list of supported host systems.\n")
 endif()

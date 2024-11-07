@@ -3,6 +3,8 @@
 
 #include <gtest/gtest.h>
 
+#include <string>
+
 TEST(CommonTest, ConvertToString) {
   std::string expected = "Hello, 世界!";
   std::string got = convert_to_string(L"Hello, 世界!");

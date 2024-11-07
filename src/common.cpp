@@ -9,6 +9,7 @@
 #include <string>
 #include <unordered_map>
 #include <utility>
+#include <algorithm>
 #include <vector>
 
 #include "simdjson.h"

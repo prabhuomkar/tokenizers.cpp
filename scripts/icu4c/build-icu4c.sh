@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-icu_version_major=75
+icu_version_major=76
 icu_version_minor=1
 icu_libs=("uc" "tu" "i18n" "io" "data")
 android_abi_list=("armeabi-v7a" "arm64-v8a" "x86" "x86_64")

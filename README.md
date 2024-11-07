@@ -1,4 +1,4 @@
-<p align="center"><img src="docs/logo.jpg" width="128px"></p>
+<p align="center"><img src="docs/logo.jpg" width="256px"></p>
 
 <h1 align="center">tokenizers.cpp</h1>
 <p align="center">Tokenizers in C++</p>

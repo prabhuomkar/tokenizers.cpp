@@ -4,6 +4,9 @@
 #include <algorithm>
 #include <optional>
 #include <string>
+#include <utility>
+#include <memory>
+#include <unordered_map>
 #include <vector>
 
 #include "simdjson.h"

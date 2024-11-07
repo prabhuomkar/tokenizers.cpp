@@ -11,6 +11,8 @@
 #include <string>
 #include <tuple>
 #include <vector>
+#include <unordered_map>
+#include <utility>
 
 #include "tokenizers/model.h"
 #include "tokenizers/normalizer.h"

@@ -3,6 +3,9 @@
 
 #include <gtest/gtest.h>
 
+#include <memory>
+#include <string>
+
 #include "simdjson.h"
 
 std::unique_ptr<Truncation> get_truncation_from_string(std::string json) {
