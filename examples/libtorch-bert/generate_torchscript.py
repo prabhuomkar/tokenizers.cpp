@@ -16,14 +16,14 @@ attention_mask = torch.tensor(encoding.attention_mask, dtype=torch.int32).unsque
 model = MobileBertForMaskedLM.from_pretrained(MODEL_NAME, torchscript=True)
 
 traced_model = torch.jit.trace(model, [input_ids, attention_mask])
-torch.jit.save(traced_model, f"data/{MODEL_NAME.split('/')[-1]}.pt")
+torch.jit.save(traced_model, f"../../data/{MODEL_NAME.split('/')[-1]}.pt")
 traced_model._save_for_lite_interpreter(f"data/{MODEL_NAME.split('/')[-1]}.ptl")
 
-loaded_model = torch.jit.load(f"data/{MODEL_NAME.split('/')[-1]}.ptl")
+loaded_model = torch.jit.load(f"../../data/{MODEL_NAME.split('/')[-1]}.ptl")
 outputs = loaded_model(input_ids, attention_mask)
 predictions = outputs[0]
 predicted_index = torch.argmax(predictions[0, masked_index]).item()
 predicted_token = tokenizer.decode([predicted_index])
 print(predicted_token)
 
-tokenizer.save("data/tokenizer.json")
+tokenizer.save("../../data/tokenizer.json")

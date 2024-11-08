@@ -121,6 +121,7 @@ For setting up the developer environment you will need following installed:
 - Generate tokenizer config for any HuggingFace model:
 ```bash
 cd scripts/
+pip3 install -r requirements.txt
 python3 generate_tokenizer_files.py bert-base-uncased
 ```
 This will generate a `tokenizer.json` file at path `<repository root>/data/bert-base-uncased` 
@@ -131,7 +132,7 @@ cmake .. && make
 ```
 - Run the examples:
 ```bash
-./examples/sample ../data/bert-base-uncased 'The goal of the life is [MASK]'
+./examples/run/run ../data/bert-base-uncased 'The goal of the life is [MASK]'
 ```
 
 ### Testing
