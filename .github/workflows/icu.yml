@@ -13,8 +13,8 @@ on:
 env:
   GH_TOKEN: ${{ secrets.TOKENIZERSCPP_GITHUB_TOKEN }}
 jobs:
-  ci-macos:
-    name: CI for macOS
+  icu-macos:
+    name: Build ICU for macOS
     runs-on: macos-14
     steps:
       - name: Git Checkout
@@ -40,13 +40,15 @@ jobs:
           sudo ln -s /opt/homebrew/opt/llvm/bin/llvm-ranlib /usr/local/bin/llvm-ranlib
           sudo ln -s /opt/homebrew/opt/llvm/bin/llvm-strip /usr/local/bin/llvm-strip
           ./build-icu4c.sh ios
-          tar -czf ios-icu-${{ github.event.inputs.icu_major }}-${{ github.event.inputs.icu_minor }}.tar.gz prebuilt/
+          export RELEASE_TAG="icu-${{ github.event.inputs.icu_major }}-${{ github.event.inputs.icu_minor }}"
+          echo "RELEASE_TAG=$RELEASE_TAG" >> $GITHUB_ENV
+          tar -czf "ios-$RELEASE_TAG.tar.gz" prebuilt/
       - name: Check If Release Exists
         id: check_release
         run: |
-          existing_release=$(gh release view icu-${{ github.event.inputs.icu_major }}-${{ github.event.inputs.icu_minor }} --json name -q ".name" || echo "")
+          existing_release=$(gh release view $RELEASE_TAG --json name -q ".name" || echo "")
           if [ -n "$existing_release" ]; then
-            echo "Release already exists with tag icu-${{ github.event.inputs.icu_major }}-${{ github.event.inputs.icu_minor }}. Updating release."
+            echo "Release already exists with tag $RELEASE_TAG. Updating release."
             echo "release_exists=true" >> $GITHUB_ENV
           else
             echo "Release does not exist. Creating release."
@@ -55,13 +57,13 @@ jobs:
       - name: Create GitHub Release
         if: env.release_exists == 'false'
         run: |
-          gh release create icu-${{ github.event.inputs.icu_major }}-${{ github.event.inputs.icu_minor }} scripts/icu4c/ios-icu-${{ github.event.inputs.icu_major }}-${{ github.event.inputs.icu_minor }}.tar.gz --title "Release ICU ${{ github.event.inputs.icu_major }}.${{ github.event.inputs.icu_minor }}"
+          gh release create $RELEASE_TAG scripts/icu4c/ios-$RELEASE_TAG.tar.gz --title "Prebuilt ICU ${{ github.event.inputs.icu_major }}.${{ github.event.inputs.icu_minor }} Binaries"
       - name: Upload GitHub Release Assets
         if: env.release_exists == 'true'
         run: |
-          gh release upload icu-${{ github.event.inputs.icu_major }}-${{ github.event.inputs.icu_minor }} scripts/icu4c/ios-icu-${{ github.event.inputs.icu_major }}-${{ github.event.inputs.icu_minor }}.tar.gz --clobber
-  ci-android:
-    name: CI for Android
+          gh release upload $RELEASE_TAG scripts/icu4c/ios-$RELEASE_TAG.tar.gz --clobber
+  icu-android:
+    name: Build ICU for Android
     runs-on: ubuntu-24.04
     steps:
       - name: Git Checkout
@@ -91,13 +93,15 @@ jobs:
         run: |
           sudo apt-get update
           ./build-icu4c.sh android
-          tar -czf android-icu-${{ github.event.inputs.icu_major }}-${{ github.event.inputs.icu_minor }}.tar.gz prebuilt/
+          export RELEASE_TAG="icu-${{ github.event.inputs.icu_major }}-${{ github.event.inputs.icu_minor }}"
+          echo "RELEASE_TAG=$RELEASE_TAG" >> $GITHUB_ENV
+          tar -czf "android-$RELEASE_TAG.tar.gz" prebuilt/
       - name: Check If Release Exists
         id: check_release
         run: |
-          existing_release=$(gh release view icu-${{ github.event.inputs.icu_major }}-${{ github.event.inputs.icu_minor }} --json name -q ".name" || echo "")
+          existing_release=$(gh release view $RELEASE_TAG --json name -q ".name" || echo "")
           if [ -n "$existing_release" ]; then
-            echo "Release already exists with tag icu-${{ github.event.inputs.icu_major }}-${{ github.event.inputs.icu_minor }}. Updating release."
+            echo "Release already exists with tag $RELEASE_TAG. Updating release."
             echo "release_exists=true" >> $GITHUB_ENV
           else
             echo "Release does not exist. Creating release."
@@ -106,8 +110,8 @@ jobs:
       - name: Create GitHub Release
         if: env.release_exists == 'false'
         run: |
-          gh release create icu-${{ github.event.inputs.icu_major }}-${{ github.event.inputs.icu_minor }} scripts/icu4c/android-icu-${{ github.event.inputs.icu_major }}-${{ github.event.inputs.icu_minor }}.tar.gz --title "Release ICU ${{ github.event.inputs.icu_major }}.${{ github.event.inputs.icu_minor }}"
+          gh release create $RELEASE_TAG scripts/icu4c/android-$RELEASE_TAG.tar.gz --title "Prebuilt ICU ${{ github.event.inputs.icu_major }}.${{ github.event.inputs.icu_minor }} Binaries"
       - name: Upload GitHub Release Assets
         if: env.release_exists == 'true'
         run: |
-          gh release upload icu-${{ github.event.inputs.icu_major }}-${{ github.event.inputs.icu_minor }} scripts/icu4c/android-icu-${{ github.event.inputs.icu_major }}-${{ github.event.inputs.icu_minor }}.tar.gz --clobber
+          gh release upload $RELEASE_TAG scripts/icu4c/android-$RELEASE_TAG.tar.gz --clobber
