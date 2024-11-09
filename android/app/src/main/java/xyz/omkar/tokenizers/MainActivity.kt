@@ -18,7 +18,6 @@ import org.pytorch.Tensor
 class MainActivity : AppCompatActivity() {
 
     private val MODEL_NAME = "mobilebert-uncased"
-    private lateinit var module: Module
     private lateinit var tokenizer: Tokenizer
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -31,7 +30,6 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
-        module = LiteModuleLoader.loadModuleFromAsset(assets, "$MODEL_NAME.ptl")
         tokenizer = Tokenizer(getTokenizerConfig(applicationContext))
         val input : EditText = findViewById(R.id.input)
         val output : TextView = findViewById(R.id.output)
@@ -39,25 +37,8 @@ class MainActivity : AppCompatActivity() {
         val submitButton : Button = findViewById(R.id.submit)
         submitButton.setOnClickListener {
             val ids = tokenizer.encode(input.text.toString(), true)
-            val attentionMask = IntArray(ids.size) { 1 }
-            val maskedIdx = ids.indexOf(103)
-            val idsTensor: Tensor =
-                Tensor.fromBlob(ids, longArrayOf(1, ids.size.toLong()))
-            val attentionMaskTensor: Tensor =
-                Tensor.fromBlob(attentionMask, longArrayOf(1, attentionMask.size.toLong()))
-            val outputs = module.runMethod("forward", IValue.from(idsTensor), IValue.from(attentionMaskTensor)).toTuple()
-            val predictions = outputs[0].toTensor()
-            val predictionForMaskedIndex = predictions.dataAsFloatArray.sliceArray(maskedIdx*predictions.shape().last().toInt() until (maskedIdx+1)*predictions.shape().last().toInt())
-            var predictedIndex = 0
-            var maxVal = predictionForMaskedIndex[0]
-            for (i in predictionForMaskedIndex.indices) {
-                if (predictionForMaskedIndex[i] > maxVal) {
-                    maxVal = predictionForMaskedIndex[i]
-                    predictedIndex = i
-                }
-            }
-            val predictedText = tokenizer.decode(intArrayOf(predictedIndex), false)
-            output.setText("Output: " + predictedText)
+            val decoded = tokenizer.decode(ids, false)
+            output.text = "Encoded: ${ids.toList()}\nDecoded: $decoded"
         }
     }
 

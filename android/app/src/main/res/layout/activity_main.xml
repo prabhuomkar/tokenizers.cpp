@@ -21,7 +21,7 @@
 
     <TextView
         android:text="Output: -"
-        android:layout_marginHorizontal="16dp"
+        android:paddingHorizontal="16dp"
         android:layout_marginTop="16dp"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
