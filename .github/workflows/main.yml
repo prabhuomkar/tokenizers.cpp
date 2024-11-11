@@ -65,12 +65,9 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Download Prebuilt ICU
-        working-directory: scripts/icu4c
-        run: |
-          wget "https://github.com/prabhuomkar/tokenizers.cpp/releases/download/icu-${ICU_MAJOR_VERSION}-${ICU_MINOR_VERSION}/ios-icu-${ICU_MAJOR_VERSION}-${ICU_MINOR_VERSION}.tar.gz" && tar -xvf ios-icu-${ICU_MAJOR_VERSION}-${ICU_MINOR_VERSION}.tar.gz
       - name: Install Dependencies
         run: |
+          brew install icu4c
           wget "https://download.pytorch.org/libtorch/cpu/libtorch-macos-arm64-${LIBTORCH_VERSION}.zip" && unzip libtorch-macos-arm64-${LIBTORCH_VERSION}.zip -d examples/libtorch-bert
           pip install cpplint
       - name: Run Lint
