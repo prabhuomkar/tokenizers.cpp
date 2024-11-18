@@ -107,9 +107,9 @@ jobs:
           ndk-version: r26c
           link-to-sdk: true
       - name: Download Prebuilt ICU
-        working-directory: scripts/icu4c
         run: |
-          wget "https://github.com/prabhuomkar/tokenizers.cpp/releases/download/icu-${ICU_MAJOR_VERSION}-${ICU_MINOR_VERSION}/android-icu-${ICU_MAJOR_VERSION}-${ICU_MINOR_VERSION}.tar.gz" && tar -xvf android-icu-${ICU_MAJOR_VERSION}-${ICU_MINOR_VERSION}.tar.gz
+          mkdir icu/
+          wget "https://github.com/prabhuomkar/tokenizers.cpp/releases/download/icu-${ICU_MAJOR_VERSION}-${ICU_MINOR_VERSION}/android-icu-${ICU_MAJOR_VERSION}-${ICU_MINOR_VERSION}.tar.gz" && tar -xvf android-icu-${ICU_MAJOR_VERSION}-${ICU_MINOR_VERSION}.tar.gz -C icu
       - name: Run Build
         working-directory: android
         run: |

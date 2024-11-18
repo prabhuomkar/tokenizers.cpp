@@ -1,5 +1,0 @@
-function(set_if_not_defined var_name value)
-    if(NOT DEFINED ${var_name})
-        set(${var_name} "${value}" PARENT_SCOPE)
-    endif()
-endfunction()
