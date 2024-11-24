@@ -3,10 +3,10 @@
 
 #include <gtest/gtest.h>
 
-#include <vector>
+#include <memory>
 #include <string>
 #include <unordered_map>
-#include <memory>
+#include <vector>
 
 #include "simdjson.h"
 

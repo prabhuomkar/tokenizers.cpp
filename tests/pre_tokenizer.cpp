@@ -5,8 +5,8 @@
 
 #include <memory>
 #include <string>
-#include <unordered_map>
 #include <typeinfo>
+#include <unordered_map>
 #include <vector>
 
 #include "simdjson.h"

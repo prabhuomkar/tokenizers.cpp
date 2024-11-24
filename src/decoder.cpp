@@ -8,8 +8,8 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
-#include <vector>
 #include <utility>
+#include <vector>
 
 #include "simdjson.h"
 #include "tokenizers/common.h"

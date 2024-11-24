@@ -4,12 +4,12 @@
 #include <unicode/uchar.h>
 #include <unicode/unistr.h>
 
+#include <algorithm>
 #include <cstdint>
 #include <optional>
 #include <string>
 #include <unordered_map>
 #include <utility>
-#include <algorithm>
 #include <vector>
 
 #include "simdjson.h"

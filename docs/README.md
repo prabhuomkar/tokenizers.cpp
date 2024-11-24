@@ -16,7 +16,7 @@ This section will provide information about the [Tokenizer components](https://h
 ### Normalizer
 | **Name** | [BertNormalizer] | [StripNormalizer] | [StripAccents] | [NFC] | [NFD] | [NFKC] | [NFKD] | [SequenceNormalizer] | [Lowercase] | [Nmt] | [Precompiled] | [Replace] | [Prepend] | [ByteLevelNormalizer] | 
 | - | - | - | - | - | - | - | - | - | - | - | - | - | - | - |
-| **Status** | ✅ | 🚧 | 🚧 | 🚧 | ✅ | 🚧 | 🚧 | ✅ | 🚧 | 🚧 | 🚧 | ✅ | ✅ | 🚧 | 
+| **Status** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 🚧 | 🚧 | 🚧 | ✅ | ✅ | 🚧 | 
 
 ### PreTokenizer
 | **Name** | [BertPreTokenizer] | [ByteLevelPreTokenizer] | [CharDelimiterSplit] | [Metaspace] | [Whitespace] | [SequencePreTokenizer] | [Split] | [Punctuation] | [WhitespaceSplit] | [Digits] | [UnicodeScripts] |  

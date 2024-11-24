@@ -4,8 +4,8 @@
 #include <gtest/gtest.h>
 
 #include <memory>
-#include <typeinfo>
 #include <string>
+#include <typeinfo>
 
 #include "simdjson.h"
 
@@ -75,6 +75,26 @@ TEST(PrependNormalizerTest, Simple) {
   EXPECT_EQ(L"_Hello World!", normalized.normalized);
 }
 
+TEST(NFCNormalizerTest, Simple) {
+  std::unique_ptr<Normalizer> normalizer =
+      get_normalizer_from_string("{\"type\":\"NFC\"}");
+  EXPECT_NE(normalizer, nullptr);
+  auto normalized = normalizer->normalize(NormalizedString(L"a\u0301"));
+  EXPECT_EQ(L"\u00E1", normalized.normalized);
+}
+
+TEST(NFCNormalizerTest, Error) {
+  std::unique_ptr<Normalizer> normalizer =
+      get_normalizer_from_string("{\"type\":\"NFC\"}");
+  EXPECT_NE(normalizer, nullptr);
+  EXPECT_THROW(
+      {
+        auto normalized = normalizer->normalize(
+            NormalizedString(convert_from_string("invalid\xFF")));
+      },
+      std::runtime_error);
+}
+
 TEST(NFDNormalizerTest, Simple) {
   std::unique_ptr<Normalizer> normalizer =
       get_normalizer_from_string("{\"type\":\"NFD\"}");
@@ -95,6 +115,46 @@ TEST(NFDNormalizerTest, Error) {
       std::runtime_error);
 }
 
+TEST(NFKCNormalizerTest, Simple) {
+  std::unique_ptr<Normalizer> normalizer =
+      get_normalizer_from_string("{\"type\":\"NFKC\"}");
+  EXPECT_NE(normalizer, nullptr);
+  auto normalized = normalizer->normalize(NormalizedString(L"\u{fb01}"));
+  EXPECT_EQ(L"fi", normalized.normalized);
+}
+
+TEST(NFKCNormalizerTest, Error) {
+  std::unique_ptr<Normalizer> normalizer =
+      get_normalizer_from_string("{\"type\":\"NFKC\"}");
+  EXPECT_NE(normalizer, nullptr);
+  EXPECT_THROW(
+      {
+        auto normalized = normalizer->normalize(
+            NormalizedString(convert_from_string("invalid\xFF")));
+      },
+      std::runtime_error);
+}
+
+TEST(NFKDNormalizerTest, Simple) {
+  std::unique_ptr<Normalizer> normalizer =
+      get_normalizer_from_string("{\"type\":\"NFKD\"}");
+  EXPECT_NE(normalizer, nullptr);
+  auto normalized = normalizer->normalize(NormalizedString(L"Héllo World!"));
+  EXPECT_EQ(L"Héllo World!", normalized.normalized);
+}
+
+TEST(NFKDNormalizerTest, Error) {
+  std::unique_ptr<Normalizer> normalizer =
+      get_normalizer_from_string("{\"type\":\"NFKD\"}");
+  EXPECT_NE(normalizer, nullptr);
+  EXPECT_THROW(
+      {
+        auto normalized = normalizer->normalize(
+            NormalizedString(convert_from_string("invalid\xFF")));
+      },
+      std::runtime_error);
+}
+
 TEST(ReplaceNormalizerTest, ReplaceContent) {
   std::unique_ptr<Normalizer> normalizer = get_normalizer_from_string(
       "{\"type\":\"Replace\",\"pattern\":{\"String\":\" "
@@ -102,4 +162,22 @@ TEST(ReplaceNormalizerTest, ReplaceContent) {
   EXPECT_NE(normalizer, nullptr);
   auto normalized = normalizer->normalize(NormalizedString(L"Hello World!"));
   EXPECT_EQ(L"Hello▁World!", normalized.normalized);
+}
+
+TEST(StripNormalizerTest, Simple) {
+  std::unique_ptr<Normalizer> normalizer = get_normalizer_from_string(
+      "{\"type\":\"Strip\",\"strip_left\":true,\"strip_right\":true}");
+  EXPECT_NE(normalizer, nullptr);
+  auto normalized =
+      normalizer->normalize(NormalizedString(L"  Hello World!  "));
+  EXPECT_EQ(L"Hello World!", normalized.normalized);
+}
+
+TEST(StripAccentsNormalizerTest, Simple) {
+  std::unique_ptr<Normalizer> normalizer =
+      get_normalizer_from_string("{\"type\":\"StripAccents\"}");
+  EXPECT_NE(normalizer, nullptr);
+  auto normalized =
+      normalizer->normalize(NormalizedString(L"e\u{304}\u{304}\u{304}o"));
+  EXPECT_EQ(L"eo", normalized.normalized);
 }

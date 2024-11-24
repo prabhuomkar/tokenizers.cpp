@@ -19,14 +19,14 @@
 
 class Tokenizer {
  public:
-  explicit Tokenizer(const std::string& path = "",
-                     const std::string& config = "");
+  explicit Tokenizer(const std::string &path = "",
+                     const std::string &config = "");
 
-  Encoding encode(const std::wstring& sequence, bool add_special_tokens = true);
-  std::string decode(const std::vector<int>& ids,
+  Encoding encode(const std::wstring &sequence, bool add_special_tokens = true);
+  std::string decode(const std::vector<int> &ids,
                      bool skip_special_tokens = true);
-  int add_tokens(const std::vector<AddedToken>& tokens);
-  int add_special_tokens(const std::vector<AddedToken>& tokens);
+  int add_tokens(const std::vector<AddedToken> &tokens);
+  int add_special_tokens(const std::vector<AddedToken> &tokens);
 
  private:
   std::string version;

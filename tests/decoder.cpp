@@ -3,9 +3,9 @@
 
 #include <gtest/gtest.h>
 
-#include <vector>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "simdjson.h"
 

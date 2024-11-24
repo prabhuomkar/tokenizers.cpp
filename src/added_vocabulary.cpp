@@ -10,9 +10,9 @@
 #include <regex>
 #include <string>
 #include <tuple>
-#include <vector>
 #include <unordered_map>
 #include <utility>
+#include <vector>
 
 #include "tokenizers/model.h"
 #include "tokenizers/normalizer.h"

@@ -382,7 +382,8 @@ Word BPE::merge_word(std::string sequence) const {
             added = true;
           }
         }
-        if (added) continue;
+        if (added)
+          continue;
       }
       if (unk_token.size() != 0) {
         if (unk.has_value() && fuse_unk) {

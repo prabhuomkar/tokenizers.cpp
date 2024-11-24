@@ -30,7 +30,7 @@ TRUNCATION_STRATEGY get_truncation_strategy(std::string strategy);
 
 class Truncation {
  public:
-  Truncation(const std::string& direction, const std::string& strategy,
+  Truncation(const std::string &direction, const std::string &strategy,
              int max_length, int stride);
   Encoding truncate_encoding(Encoding encoding) const;
 
@@ -59,10 +59,10 @@ PADDING_STRATEGY get_padding_strategy(std::string strategy);
 
 class Padding {
  public:
-  Padding(const std::string& direction, const std::string& strategy,
+  Padding(const std::string &direction, const std::string &strategy,
           int fixed_size, int pad_id, int pad_type_id,
-          const std::string& pad_token, int pad_to_multiple_of);
-  Encoding pad_encoding(const Encoding& encoding) const;
+          const std::string &pad_token, int pad_to_multiple_of);
+  Encoding pad_encoding(const Encoding &encoding) const;
 
  private:
   PADDING_DIRECTION direction;

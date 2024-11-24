@@ -37,7 +37,7 @@ class PreTokenizedString {
  public:
   NormalizedString normalized;
   std::vector<Split> splits;
-  explicit PreTokenizedString(const NormalizedString& normalized);
+  explicit PreTokenizedString(const NormalizedString &normalized);
   void split(std::function<std::vector<std::pair<std::pair<int, int>, bool>>(
                  icu::UnicodeString)>
                  split_fn,
@@ -74,8 +74,8 @@ class SequencePreTokenizer : public PreTokenizer {
 
 class SplitPreTokenizer : public PreTokenizer {
  public:
-  explicit SplitPreTokenizer(const std::string& pattern,
-                             const std::string& behavior, bool invert);
+  explicit SplitPreTokenizer(const std::string &pattern,
+                             const std::string &behavior, bool invert);
   PreTokenizedString pre_tokenize(
       PreTokenizedString pre_tokenized) const override;
 

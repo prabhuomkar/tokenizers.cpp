@@ -20,12 +20,12 @@ class Encoding {
   std::vector<int> attention_mask;
   std::vector<Encoding> overflowing;
   Encoding();
-  Encoding(const std::vector<int>& ids, const std::vector<int>& type_ids,
-           const std::vector<std::string>& tokens,
-           const std::vector<std::optional<int>>& words,
-           const std::vector<std::pair<int, int>>& offsets,
-           const std::vector<int>& special_tokens_mask,
-           const std::vector<int>& attention_mask);
+  Encoding(const std::vector<int> &ids, const std::vector<int> &type_ids,
+           const std::vector<std::string> &tokens,
+           const std::vector<std::optional<int>> &words,
+           const std::vector<std::pair<int, int>> &offsets,
+           const std::vector<int> &special_tokens_mask,
+           const std::vector<int> &attention_mask);
 };
 
 class Token {
@@ -39,8 +39,8 @@ class Token {
 
 enum SPLIT_DELIMITER_BEHAVIOR { REMOVED, ISOLATED };
 
-SPLIT_DELIMITER_BEHAVIOR get_split_delimiter_behavior(
-    const std::string& behavior);
+SPLIT_DELIMITER_BEHAVIOR
+get_split_delimiter_behavior(const std::string &behavior);
 
 class Split {
  public:

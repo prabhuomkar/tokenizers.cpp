@@ -8,8 +8,8 @@
 #include <numeric>
 #include <optional>
 #include <string>
-#include <vector>
 #include <utility>
+#include <vector>
 
 #include "simdjson.h"
 #include "tokenizers/added_vocabulary.h"

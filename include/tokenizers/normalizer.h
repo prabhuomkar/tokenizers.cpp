@@ -41,7 +41,7 @@ class NormalizedString {
   std::vector<std::pair<int, int>> offset_ranges;
   explicit NormalizedString(std::wstring normalized);
   NormalizedString(std::wstring normalized,
-                   const std::vector<std::pair<int, int>>& offsets);
+                   const std::vector<std::pair<int, int>> &offsets);
   void transform(int i, std::string op, int n);
   void transform_range(std::pair<int, int> original_offsets,
                        NormalizedString sub_normalized);
@@ -76,7 +76,7 @@ class BertNormalizer : public Normalizer {
 
 class Prepend : public Normalizer {
  public:
-  explicit Prepend(const std::string& prepend);
+  explicit Prepend(const std::string &prepend);
   NormalizedString normalize(NormalizedString normalized) const override;
 
  private:
@@ -85,7 +85,7 @@ class Prepend : public Normalizer {
 
 class Replace : public Normalizer {
  public:
-  explicit Replace(const std::string& pattern, const std::string& content);
+  explicit Replace(const std::string &pattern, const std::string &content);
   NormalizedString normalize(NormalizedString normalized) const override;
 
  private:
@@ -93,9 +93,27 @@ class Replace : public Normalizer {
   std::string content;
 };
 
+class NFC : public Normalizer {
+ public:
+  NFC();
+  NormalizedString normalize(NormalizedString normalized) const override;
+};
+
 class NFD : public Normalizer {
  public:
   NFD();
+  NormalizedString normalize(NormalizedString normalized) const override;
+};
+
+class NFKC : public Normalizer {
+ public:
+  NFKC();
+  NormalizedString normalize(NormalizedString normalized) const override;
+};
+
+class NFKD : public Normalizer {
+ public:
+  NFKD();
   NormalizedString normalize(NormalizedString normalized) const override;
 };
 
@@ -107,4 +125,20 @@ class SequenceNormalizer : public Normalizer {
 
  private:
   std::vector<std::unique_ptr<Normalizer>> normalizers;
+};
+
+class Strip : public Normalizer {
+ public:
+  Strip(bool strip_left, bool strip_right);
+  NormalizedString normalize(NormalizedString normalized) const override;
+
+ private:
+  bool strip_left;
+  bool strip_right;
+};
+
+class StripAccents : public Normalizer {
+ public:
+  StripAccents();
+  NormalizedString normalize(NormalizedString normalized) const override;
 };

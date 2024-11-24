@@ -35,14 +35,14 @@ class AddedVocabulary {
  public:
   std::vector<AddedToken> added_tokens;
   explicit AddedVocabulary(std::vector<AddedToken> added_tokens);
-  int add_tokens(const std::vector<AddedToken>& tokens, Model* model,
-                 Normalizer* normalizer);
-  int add_special_tokens(const std::vector<AddedToken>& tokens, Model* model,
-                         Normalizer* normalizer);
-  bool is_special_token(const std::string& token) const;
+  int add_tokens(const std::vector<AddedToken> &tokens, Model *model,
+                 Normalizer *normalizer);
+  int add_special_tokens(const std::vector<AddedToken> &tokens, Model *model,
+                         Normalizer *normalizer);
+  bool is_special_token(const std::string &token) const;
   std::optional<std::string> id_to_token(int id);
-  PreTokenizedString extract_and_normalize(const Normalizer* normalizer,
-                                           const std::wstring& sequence);
+  PreTokenizedString extract_and_normalize(const Normalizer *normalizer,
+                                           const std::wstring &sequence);
 
  private:
   bool encode_special_tokens;
@@ -53,7 +53,7 @@ class AddedVocabulary {
   std::pair<std::vector<std::string>, std::vector<int>>
       split_non_normalized_trie;
   std::pair<std::vector<std::string>, std::vector<int>> split_normalized_trie;
-  void refresh_added_tokens(Model* model, Normalizer* normalizer);
+  void refresh_added_tokens(Model *model, Normalizer *normalizer);
   std::vector<std::pair<std::optional<int>, std::pair<int, int>>> find_matches(
       std::string sentence,
       std::pair<std::vector<std::string>, std::vector<int>> split_re);

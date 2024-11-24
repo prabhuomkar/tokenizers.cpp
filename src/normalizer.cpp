@@ -14,8 +14,8 @@
 #include <regex>
 #include <string>
 #include <unordered_map>
-#include <vector>
 #include <utility>
+#include <vector>
 
 #include "simdjson.h"
 #include "tokenizers/common.h"
@@ -85,8 +85,14 @@ std::unique_ptr<Normalizer> with_normalizer(
     }
     return std::make_unique<SequenceNormalizer>(
         SequenceNormalizer(std::move(seq_normalizers)));
+  } else if (get_normalizer(type) == NFC_NORMALIZER) {
+    return std::make_unique<NFC>(NFC());
   } else if (get_normalizer(type) == NFD_NORMALIZER) {
     return std::make_unique<NFD>(NFD());
+  } else if (get_normalizer(type) == NFKC_NORMALIZER) {
+    return std::make_unique<NFKC>(NFKC());
+  } else if (get_normalizer(type) == NFKD_NORMALIZER) {
+    return std::make_unique<NFKD>(NFKD());
   } else if (get_normalizer(type) == PREPEND_NORMALIZER) {
     val = normalizer_params["prepend"].value();
     std::string prepend =
@@ -127,6 +133,18 @@ std::unique_ptr<Normalizer> with_normalizer(
                          : static_cast<bool>(val.get_bool());
     return std::make_unique<BertNormalizer>(BertNormalizer(
         clean_text, handle_chinese_chars, strip_accents, lowercase));
+  } else if (get_normalizer(type) == STRIP_NORMALIZER) {
+    val = normalizer_params["strip_left"].value();
+    bool strip_left = val.type() == simdjson::ondemand::json_type::null
+                          ? false
+                          : static_cast<bool>(val.get_bool());
+    val = normalizer_params["strip_right"].value();
+    bool strip_right = val.type() == simdjson::ondemand::json_type::null
+                           ? false
+                           : static_cast<bool>(val.get_bool());
+    return std::make_unique<Strip>(Strip(strip_left, strip_right));
+  } else if (get_normalizer(type) == STRIP_ACCENTS_NORMALIZER) {
+    return std::make_unique<StripAccents>(StripAccents());
   }
   return nullptr;
 }
@@ -231,6 +249,44 @@ void NormalizedString::transform(int i, std::string op, int n) {
   }
 }
 
+NFC::NFC() {}
+
+NormalizedString NFC::normalize(NormalizedString normalized) const {
+  UErrorCode status = U_ZERO_ERROR;
+  icu::UnicodeString unicode_normalized = icu::UnicodeString::fromUTF32(
+      reinterpret_cast<const UChar32*>(normalized.normalized.c_str()),
+      normalized.normalized.length());
+  icu::Normalizer::normalize(unicode_normalized, UNORM_NFC, 0,
+                             unicode_normalized, status);
+  if (U_FAILURE(status)) {
+    throw std::runtime_error("ICU normalization failed with error code: " +
+                             std::to_string(status));
+  }
+  std::wstring result;
+  result.resize(unicode_normalized.countChar32());
+  unicode_normalized.toUTF32(reinterpret_cast<UChar32*>(&result[0]),
+                             unicode_normalized.countChar32(), status);
+  int oi = 0, ni = 0;
+  std::vector<int> grow_ids;
+  while (oi < normalized.normalized.length() && ni < result.length()) {
+    if (normalized.normalized[oi] == result[ni]) {
+      oi++;
+      ni++;
+    } else {
+      grow_ids.push_back(oi);
+      oi++;
+      ni += 2;
+    }
+  }
+  int multi = 0;
+  for (auto i : grow_ids) {
+    normalized.transform(i + multi, "grow", 0);
+    multi += 1;
+  }
+  normalized.normalized = result;
+  return normalized;
+}
+
 NFD::NFD() {}
 
 NormalizedString NFD::normalize(NormalizedString normalized) const {
@@ -239,6 +295,82 @@ NormalizedString NFD::normalize(NormalizedString normalized) const {
       reinterpret_cast<const UChar32*>(normalized.normalized.c_str()),
       normalized.normalized.length());
   icu::Normalizer::normalize(unicode_normalized, UNORM_NFD, 0,
+                             unicode_normalized, status);
+  if (U_FAILURE(status)) {
+    throw std::runtime_error("ICU normalization failed with error code: " +
+                             std::to_string(status));
+  }
+  std::wstring result;
+  result.resize(unicode_normalized.countChar32());
+  unicode_normalized.toUTF32(reinterpret_cast<UChar32*>(&result[0]),
+                             unicode_normalized.countChar32(), status);
+  int oi = 0, ni = 0;
+  std::vector<int> grow_ids;
+  while (oi < normalized.normalized.length() && ni < result.length()) {
+    if (normalized.normalized[oi] == result[ni]) {
+      oi++;
+      ni++;
+    } else {
+      grow_ids.push_back(oi);
+      oi++;
+      ni += 2;
+    }
+  }
+  int multi = 0;
+  for (auto i : grow_ids) {
+    normalized.transform(i + multi, "grow", 0);
+    multi += 1;
+  }
+  normalized.normalized = result;
+  return normalized;
+}
+
+NFKC::NFKC() {}
+
+NormalizedString NFKC::normalize(NormalizedString normalized) const {
+  UErrorCode status = U_ZERO_ERROR;
+  icu::UnicodeString unicode_normalized = icu::UnicodeString::fromUTF32(
+      reinterpret_cast<const UChar32*>(normalized.normalized.c_str()),
+      normalized.normalized.length());
+  icu::Normalizer::normalize(unicode_normalized, UNORM_NFKC, 0,
+                             unicode_normalized, status);
+  if (U_FAILURE(status)) {
+    throw std::runtime_error("ICU normalization failed with error code: " +
+                             std::to_string(status));
+  }
+  std::wstring result;
+  result.resize(unicode_normalized.countChar32());
+  unicode_normalized.toUTF32(reinterpret_cast<UChar32*>(&result[0]),
+                             unicode_normalized.countChar32(), status);
+  int oi = 0, ni = 0;
+  std::vector<int> grow_ids;
+  while (oi < normalized.normalized.length() && ni < result.length()) {
+    if (normalized.normalized[oi] == result[ni]) {
+      oi++;
+      ni++;
+    } else {
+      grow_ids.push_back(oi);
+      oi++;
+      ni += 2;
+    }
+  }
+  int multi = 0;
+  for (auto i : grow_ids) {
+    normalized.transform(i + multi, "grow", 0);
+    multi += 1;
+  }
+  normalized.normalized = result;
+  return normalized;
+}
+
+NFKD::NFKD() {}
+
+NormalizedString NFKD::normalize(NormalizedString normalized) const {
+  UErrorCode status = U_ZERO_ERROR;
+  icu::UnicodeString unicode_normalized = icu::UnicodeString::fromUTF32(
+      reinterpret_cast<const UChar32*>(normalized.normalized.c_str()),
+      normalized.normalized.length());
+  icu::Normalizer::normalize(unicode_normalized, UNORM_NFKD, 0,
                              unicode_normalized, status);
   if (U_FAILURE(status)) {
     throw std::runtime_error("ICU normalization failed with error code: " +
@@ -455,5 +587,42 @@ NormalizedString Replace::normalize(NormalizedString normalized) const {
     normalized.transform(i + multi, "replace", content.length());
     multi += replace_content.length();
   }
+  return normalized;
+}
+
+Strip::Strip(bool strip_left, bool strip_right)
+    : strip_left(strip_left), strip_right(strip_right) {}
+
+NormalizedString Strip::normalize(NormalizedString normalized) const {
+  int start = 0, end = normalized.normalized.size();
+  if (strip_left) {
+    while (start < normalized.normalized.size() &&
+           std::isspace(
+               static_cast<unsigned char>(normalized.normalized[start]))) {
+      ++start;
+    }
+  }
+  if (strip_right) {
+    while (end > start && std::isspace(static_cast<unsigned char>(
+                              normalized.normalized[end - 1]))) {
+      --end;
+    }
+  }
+  normalized.normalized = normalized.normalized.substr(start, end - start);
+  return normalized;
+}
+
+bool isCombiningMark(wchar_t ch) { return (ch >= 0x0300 && ch <= 0x036F); }
+
+StripAccents::StripAccents() {}
+
+NormalizedString StripAccents::normalize(NormalizedString normalized) const {
+  std::wstring result;
+  for (wchar_t ch : normalized.normalized) {
+    if (!isCombiningMark(ch)) {
+      result += ch;
+    }
+  }
+  normalized.normalized = result;
   return normalized;
 }

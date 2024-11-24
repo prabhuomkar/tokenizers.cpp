@@ -2,11 +2,11 @@
 #include "tokenizers/utils.h"
 
 #include <algorithm>
+#include <memory>
 #include <optional>
 #include <string>
-#include <utility>
-#include <memory>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "simdjson.h"
